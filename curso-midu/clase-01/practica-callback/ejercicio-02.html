@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<script type="module">
+
+    function iniciar() {
+        window.addEventListener('click', () => {
+            const a = prompt('primer numero: ');
+            const b = prompt('segundo numero: ');
+            operacion(
+                Number.parseInt(a, 10),
+                Number.parseInt(b, 10),
+                callbackOperacion
+            );
+        });
+
+        function callbackOperacion(num1, num2) {
+            console.log('suma: ', num1 + num2);
+            console.log('resta: ', num1 - num2);
+            if (num2 !== 0) {
+                console.log('division: ', num1 / num2);
+            }
+            console.log('multiplicacion: ', num1 * num2);
+        }
+
+        function operacion(num1, num2, callback) {
+            callback(num1, num2);
+        }
+
+    }
+
+    window.onload = iniciar;
+</script>
+
+<body>
+
+</body>
+
+</html>

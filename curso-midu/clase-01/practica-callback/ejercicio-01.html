@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<script type="module">
+
+    function iniciar() {
+        window.addEventListener('click', () => {
+            const nombre = prompt('escribe tu nombre: ');
+            saludo(nombre, callbackSaludo)
+        });
+
+        function callbackSaludo(mensaje) {
+            console.log(mensaje)
+        }
+
+        function saludo(nombre, callback) {
+            const mensaje = 'hola ' + nombre;
+            callback(mensaje);
+        }
+
+    }
+
+    window.onload = iniciar;
+</script>
+
+<body>
+
+</body>
+
+</html>

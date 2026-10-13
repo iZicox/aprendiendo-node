@@ -17,7 +17,5 @@
     }
   },
   "packageManager": "pnpm@12.11.2",
-  "devDependencies": {
-    "standard": "^17.1.2"
-  }
+  "type": "module"
 }
