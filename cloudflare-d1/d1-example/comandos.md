@@ -1,0 +1,3 @@
+- npx wrangler d1 create d1-example  (crea la base de datos)
+- npx wrangler d1 execute d1-example --remote --command "select name from sqlite_master where type = 'table'" (ejecuta una consulta en la base de datos remota)
+- npx wrangler d1 execute d1-example --remote --file {ruta} (ejecuta un archivo sql)
