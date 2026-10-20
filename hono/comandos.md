@@ -36,6 +36,18 @@ export const updateProductSchema = z.object({
 })
 ```
 
+para pasar varios validadores a un endpoint lo separamos por comas
+```typescript
+app.patch(
+  '/api/products/:id', 
+  zValidator('param', idSchema), 
+  zValidator('json',updateProductSchema), 
+  async (c) => {
+    // coidgo...
+})
+  
+```
+
 ## Crear un post
 
 Para crear un post en hono es necesario usar un async await
