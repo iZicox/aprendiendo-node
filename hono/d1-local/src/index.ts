@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import z from 'zod'
+import { idSchema, createProductSchema, updateProductSchema } from './validations';
 import { zValidator } from '@hono/zod-validator'
 
 type EnvApp = {
@@ -15,43 +15,53 @@ app.get('/api/products', async (c) => {
 })
 
 // listar id
-app.get('/api/products/:id', async (c) => {
-  const id = c.req.param('id')
+app.get('/api/products/:id', zValidator('param',idSchema), async (c) => {
+  const {id} = c.req.valid('param')
+
   const { results } = await c.env.DB.prepare('select * from products where id = ?').bind(id).run()
+
+  if(!results[0]){
+    return c.json({error: 'no encontrado'},400)
+  }
 
   return c.json(results[0])
 })
 
 // eliminar
-app.delete('/api/products/:id', async (c) => {
-  const id = c.req.param('id')
+app.delete('/api/products/:id', zValidator('param', idSchema), async (c) => {
+  
+  const {id} = c.req.valid('param')
+
   const { meta } = await c.env.DB.prepare('delete from products where id = ?').bind(id).run()
 
   if (meta.changes === 0) {
     return c.json(
       {
-        erro: `producto con id ${Number(id)} no encontrado`
+        error: `producto con id ${id} no encontrado`
       },
-      404
+      400
     )
   }
 
   return c.json(
     {
-      message: `Producto id ${Number(id)} eliminado`
+      message: `Producto id ${id} eliminado`
     })
 })
 
 // eliminar devolviendo fila
 app.delete('/api/products/fila/:id', async (c) => {
   const id = c.req.param('id')
-  // el fist te devuelve la fila
-  const row = await c.env.DB.prepare('delete from products where id = ?').bind(id).first()
+  // el first te devuelve la fila
+  const row = await c.env.DB
+    .prepare('delete from products where id = ? returning *')
+    .bind(id)
+    .first()
   // verificamos si la fila existe
   if (!row) {
     return c.json(
       {
-        erro: `producto con id ${Number(id)} no encontrado`
+        error: `producto con id ${Number(id)} no encontrado`
       },
       404
     )
@@ -62,20 +72,12 @@ app.delete('/api/products/fila/:id', async (c) => {
 
 // insertar
 // validar con zod
-const createProductSchema = z.object({
-  name: z.string().min(1).trim(),
-  price: z.number().positive(),
-  stock: z.number().int().nonnegative()
-})
+
 
 
 app.post(
   '/api/products',
-  zValidator('json', createProductSchema, (result, c) => {
-    if (!result.success) {
-      return c.json({ errors: z.treeifyError(result.error) }, 400)
-    }
-  }),
+  zValidator('json', createProductSchema),
   async (c) => {
     const { name, price, stock } = c.req.valid('json')
 
@@ -90,6 +92,38 @@ app.post(
       .first()
 
     return c.json(created, 201)
+  }
+)
+
+
+// edicion parcial
+app.patch('/api/products/:id', zValidator('param', idSchema), zValidator('json',updateProductSchema), async (c) => {
+  
+  const {id} = c.req.valid('param')
+  const data = c.req.valid('json')
+
+  const product = await c.env.DB.prepare('select * from products where id = ?')
+    .bind(id)
+    .first()
+
+  if(!product){
+    return c.json({error: 'producto no encontrado'},404)
+  }
+
+  const name = data.name ?? product.name
+  const price = data.price ?? product.price
+  const stock = data.stock ?? product.stock
+
+  await c.env.DB.prepare('update products set name = ?, price = ?, stock = ? where id = ?')
+    .bind(name, price, stock, id)
+    .run()
+
+  return c.json({
+    ...product,
+    name,
+    price,
+    stock
   })
+} )
 
 export default app
