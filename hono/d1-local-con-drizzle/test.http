@@ -1,0 +1,61 @@
+http://localhost:8787/categories
+
+###
+
+http://localhost:8787/categories/1
+
+###
+DELETE http://localhost:8787/categories/1
+
+###
+@contentType = application/json
+POST http://localhost:8787/categories HTTP/1.1
+Content-Type: {{contentType}}
+
+{
+    "name": "prueba"
+}
+
+### 
+PATCH http://localhost:8787/categories/6 HTTP/1.1
+Content-Type: {{contentType}}
+
+{
+    "name": "pruebaEditado"
+}
+
+###
+
+http://localhost:8787/products
+
+###
+
+http://localhost:8787/products/10
+
+###
+
+POST http://localhost:8787/products HTTP/1.1
+Content-Type: {{contentType}}
+
+{
+    "name": "prueba",
+    "details": "detalles",
+    "priceCents": 1000,
+    "stock": 0,
+    "categoryId": 3
+}
+
+###
+
+PATCH http://localhost:8787/products/10 HTTP/1.1
+Content-Type: {{contentType}}
+
+{
+
+    "stock": 1000
+
+}
+
+###
+
+DELETE  http://localhost:8787/products/4

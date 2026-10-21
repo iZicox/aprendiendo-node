@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Panel de productos y categorías</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --danger: #dc2626;
+      --danger-dark: #b91c1c;
+      --radius: 12px;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    h1, h2, p { margin-top: 0; }
+
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 28px;
+      background: #0f172a;
+      color: #ffffff;
+    }
+
+    .topbar h1 {
+      margin-bottom: 2px;
+      font-size: 1.3rem;
+    }
+
+    .topbar p {
+      margin-bottom: 0;
+      color: #94a3b8;
+      font-size: 0.85rem;
+    }
+
+    .api-config {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .api-config label {
+      font-size: 0.78rem;
+      color: #cbd5e1;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .api-config input {
+      width: 250px;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(330px, 0.9fr);
+      gap: 22px;
+      align-items: start;
+      max-width: 1400px;
+      margin: 24px auto 0;
+      padding: 0 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      overflow: hidden;
+    }
+
+    .card-header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-title {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .card-title h2 {
+      margin-bottom: 0;
+      font-size: 1.05rem;
+    }
+
+    .card-body {
+      padding: 16px 20px 20px;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3730a3;
+      font-size: 0.72rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .endpoint {
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: #f1f5f9;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.72rem;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .toolbar input[type="number"] {
+      width: 170px;
+    }
+
+    input,
+    select,
+    textarea {
+      min-width: 0;
+      padding: 9px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #ffffff;
+      color: inherit;
+      font: inherit;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: 2px solid #bfdbfe;
+      outline-offset: 0;
+      border-color: var(--primary);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 9px 14px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: var(--primary);
+      color: #ffffff;
+      font: inherit;
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn.ghost {
+      background: #ffffff;
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    .btn.ghost:hover {
+      background: #f8fafc;
+    }
+
+    .topbar .btn.ghost {
+      background: transparent;
+      border-color: #334155;
+      color: #e2e8f0;
+    }
+
+    .topbar .btn.ghost:hover {
+      background: #1e293b;
+    }
+
+    .btn.danger {
+      background: var(--danger);
+    }
+
+    .btn.danger:hover {
+      background: var(--danger-dark);
+    }
+
+    .btn.small {
+      padding: 5px 9px;
+      font-size: 0.76rem;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-bottom: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    th,
+    td {
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    td.id {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    td.num {
+      text-align: right;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    td.actions {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    td.actions .btn + .btn {
+      margin-left: 4px;
+    }
+
+    .sub {
+      max-width: 430px;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      overflow-wrap: anywhere;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .empty {
+      padding: 26px 8px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 6px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .form label {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      color: #475569;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .form label .hint {
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 400;
+    }
+
+    .form .full,
+    .form .form-actions {
+      grid-column: 1 / -1;
+    }
+
+    .form textarea {
+      min-height: 66px;
+      resize: vertical;
+    }
+
+    .form-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding-top: 2px;
+    }
+
+    .help {
+      max-width: 1400px;
+      margin: 22px auto 0;
+      padding: 0 24px;
+    }
+
+    .help details {
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #ffffff;
+      font-size: 0.84rem;
+    }
+
+    .help summary {
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .help p {
+      margin: 10px 0 0;
+    }
+
+    .help pre {
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #e2e8f0;
+      overflow-x: auto;
+    }
+
+    .help code {
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: #f1f5f9;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.8rem;
+    }
+
+    .help pre code {
+      padding: 0;
+      background: transparent;
+    }
+
+    footer {
+      max-width: 1400px;
+      margin: 18px auto 40px;
+      padding: 0 24px;
+      color: var(--muted);
+      font-size: 0.76rem;
+    }
+
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 50;
+      max-width: min(480px, calc(100vw - 40px));
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: #0f172a;
+      color: #ffffff;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.28);
+      opacity: 0;
+      transform: translateY(150%);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      font-size: 0.86rem;
+      overflow-wrap: anywhere;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast.success { background: #166534; }
+    .toast.error { background: #991b1b; }
+    .toast.info { background: #1e40af; }
+
+    @media (max-width: 1050px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar,
+      main,
+      .help,
+      footer {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .api-config input {
+        width: 100%;
+      }
+
+      .form {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Panel de productos y categorías</h1>
+      <p>Cliente HTML para la API de D1 + Drizzle</p>
+    </div>
+    <div class="api-config">
+      <label for="apiBase">API base</label>
+      <input id="apiBase" type="text" placeholder="mismo origen (vacío)" autocomplete="off" spellcheck="false">
+      <button id="saveApiBase" class="btn" type="button">Guardar</button>
+      <button id="testApi" class="btn ghost" type="button">Probar</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <h2>Productos</h2>
+          <span class="endpoint">/api/products</span>
+          <span class="pill"><span id="productsCount">0</span> en pantalla</span>
+        </div>
+        <button id="refreshProducts" class="btn ghost small" type="button">Actualizar</button>
+      </div>
+      <div class="card-body">
+        <form id="productSearchForm" class="toolbar">
+          <input id="productSearchId" type="number" min="1" step="1" placeholder="ID de producto">
+          <button class="btn" type="submit">Buscar por ID</button>
+          <button id="productListAll" class="btn ghost" type="button">Ver todos</button>
+        </form>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Producto</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Categoría</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="productsBody">
+              <tr><td colspan="6" class="empty">Cargando…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <form id="productForm" class="form">
+          <label class="full">
+            Nombre
+            <input name="name" type="text" required minlength="3" maxlength="50" placeholder="Teclado mecánico">
+          </label>
+
+          <label class="full">
+            Detalles <span class="hint">opcional, 3 a 200 caracteres</span>
+            <textarea name="details" minlength="3" maxlength="200" placeholder="Descripción del producto"></textarea>
+            <span class="hint">En edición, dejar vacío conserva el valor actual.</span>
+          </label>
+
+          <label>
+            Precio (centavos)
+            <input name="priceCents" type="number" required min="1" step="1" placeholder="4999">
+          </label>
+
+          <label>
+            Stock
+            <input name="stock" type="number" required min="0" step="1" placeholder="10">
+          </label>
+
+          <label class="full">
+            Categoría
+            <select name="categoryId" id="productCategoryId" required>
+              <option value="">Cargando categorías…</option>
+            </select>
+          </label>
+
+          <div class="form-actions">
+            <button id="productSubmit" class="btn" type="submit">Crear producto</button>
+            <button id="productCancel" class="btn ghost" type="button" hidden>Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <h2>Categorías</h2>
+          <span class="endpoint">/api/categories</span>
+          <span class="pill"><span id="categoriesCount">0</span> en pantalla</span>
+        </div>
+        <button id="refreshCategories" class="btn ghost small" type="button">Actualizar</button>
+      </div>
+      <div class="card-body">
+        <form id="categorySearchForm" class="toolbar">
+          <input id="categorySearchId" type="number" min="1" step="1" placeholder="ID de categoría">
+          <button class="btn" type="submit">Buscar por ID</button>
+          <button id="categoryListAll" class="btn ghost" type="button">Ver todas</button>
+        </form>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Categoría</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="categoriesBody">
+              <tr><td colspan="3" class="empty">Cargando…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <form id="categoryForm" class="form">
+          <label class="full">
+            Nombre
+            <input name="name" type="text" required minlength="3" maxlength="50" placeholder="Herramientas">
+          </label>
+
+          <div class="form-actions">
+            <button id="categorySubmit" class="btn" type="submit">Crear categoría</button>
+            <button id="categoryCancel" class="btn ghost" type="button" hidden>Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <section class="help">
+    <details>
+      <summary>¿Cómo abrirlo con doble clic?</summary>
+      <p>
+        Abrí <code>index.html</code> con doble clic. La API ya incluye CORS para
+        <code>/api/*</code>, así que el origen <code>file://</code> puede consultarla.
+      </p>
+      <p>
+        Solo necesitás que <code>wrangler dev</code> esté corriendo. La
+        <strong>API base</strong> por defecto es
+        <code>http://localhost:8787/api</code>.
+      </p>
+      <p>Si preferís servir el HTML desde otro puerto, podés usar un proxy:</p>
+      <pre><code>npx http-server . -p 3000 -P http://localhost:8787/</code></pre>
+      <p>Y abrir <code>http://localhost:3000/</code>.</p>
+    </details>
+  </section>
+
+  <footer>
+    GET, POST, PATCH y DELETE sobre <code>/api/products</code> y <code>/api/categories</code>.
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      'use strict'
+
+      const STORAGE_KEY = 'd1-api-base'
+
+      const $ = (selector, root = document) => root.querySelector(selector)
+
+      const state = {
+        apiBase: '',
+        products: [],
+        categories: [],
+        productFilter: null,
+        categoryFilter: null,
+        editingProduct: null,
+        editingCategory: null,
+      }
+
+      const els = {
+        apiBase: $('#apiBase'),
+        saveApiBase: $('#saveApiBase'),
+        testApi: $('#testApi'),
+        toast: $('#toast'),
+        refreshProducts: $('#refreshProducts'),
+        refreshCategories: $('#refreshCategories'),
+        productSearchForm: $('#productSearchForm'),
+        productSearchId: $('#productSearchId'),
+        productListAll: $('#productListAll'),
+        productsBody: $('#productsBody'),
+        productsCount: $('#productsCount'),
+        productForm: $('#productForm'),
+        productSubmit: $('#productSubmit'),
+        productCancel: $('#productCancel'),
+        productCategoryId: $('#productCategoryId'),
+        categorySearchForm: $('#categorySearchForm'),
+        categorySearchId: $('#categorySearchId'),
+        categoryListAll: $('#categoryListAll'),
+        categoriesBody: $('#categoriesBody'),
+        categoriesCount: $('#categoriesCount'),
+        categoryForm: $('#categoryForm'),
+        categorySubmit: $('#categorySubmit'),
+        categoryCancel: $('#categoryCancel'),
+      }
+
+      class ApiError extends Error {
+        constructor(status, message, payload) {
+          super(message)
+          this.name = 'ApiError'
+          this.status = status
+          this.payload = payload
+        }
+      }
+
+      function normalizeBase(value) {
+        return String(value ?? '').trim().replace(/\/+$/, '')
+      }
+
+      function defaultApiBase() {
+        return location.protocol === 'http:' || location.protocol === 'https:'
+          ? '/api'
+          : 'http://localhost:8787/api'
+      }
+
+      function readStoredBase() {
+        try {
+          return localStorage.getItem(STORAGE_KEY)
+        } catch {
+          return null
+        }
+      }
+
+      function normalizeSavedBase(value) {
+        if (!value) return defaultApiBase()
+
+        const normalized = normalizeBase(value)
+
+        if (/^https?:\/\/(localhost|127\.0\.0\.1):8787$/i.test(normalized)) {
+          return `${normalized}/api`
+        }
+
+        return normalized
+      }
+
+      function storeBase(value) {
+        try {
+          localStorage.setItem(STORAGE_KEY, value)
+        } catch {
+          // localStorage puede estar bloqueado; la app sigue funcionando en memoria.
+        }
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;',
+        })[character])
+      }
+
+      function formatMoney(cents) {
+        const value = Number(cents)
+        if (!Number.isFinite(value)) return '—'
+
+        return new Intl.NumberFormat('es-AR', {
+          style: 'currency',
+          currency: 'ARS',
+          maximumFractionDigits: 2,
+        }).format(value / 100)
+      }
+
+      function formatDate(value) {
+        if (!value) return ''
+        const date = new Date(value)
+        if (Number.isNaN(date.getTime())) return ''
+        return date.toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' })
+      }
+
+      function extractMessage(payload, fallback) {
+        if (!payload) return fallback || 'Error desconocido'
+        if (typeof payload === 'string') return payload
+        if (typeof payload.error === 'string') return payload.error
+
+        const issues = payload.error?.issues ?? payload.issues
+        if (Array.isArray(issues)) {
+          return issues.map((issue) => {
+            const path = Array.isArray(issue.path) && issue.path.length
+              ? issue.path.join('.') + ': '
+              : ''
+            return path + (issue.message || 'valor inválido')
+          }).join(' · ')
+        }
+
+        if (payload.error && typeof payload.error === 'object') {
+          return payload.error.message || JSON.stringify(payload.error)
+        }
+
+        return fallback || JSON.stringify(payload)
+      }
+
+      function describeError(error) {
+        if (error instanceof ApiError) {
+          return `${error.message} (HTTP ${error.status})`
+        }
+
+        if (error instanceof TypeError) {
+          return 'No se pudo conectar con la API. Verificá que wrangler dev esté corriendo y abrí “¿La API no responde?” para configurar el proxy.'
+        }
+
+        return error?.message || String(error)
+      }
+
+      let toastTimer = null
+
+      function showToast(message, type = 'info') {
+        els.toast.textContent = message
+        els.toast.className = `toast show ${type}`
+
+        clearTimeout(toastTimer)
+        toastTimer = setTimeout(() => {
+          els.toast.className = 'toast'
+        }, 5500)
+      }
+
+      async function api(path, options = {}) {
+        const headers = new Headers(options.headers || {})
+        if (options.body !== undefined && !headers.has('Content-Type')) {
+          headers.set('Content-Type', 'application/json')
+        }
+
+        const response = await fetch(`${state.apiBase}${path}`, {
+          ...options,
+          headers,
+        })
+
+        const text = await response.text()
+        let payload = null
+
+        if (text) {
+          try {
+            payload = JSON.parse(text)
+          } catch {
+            payload = text
+          }
+        }
+
+        if (!response.ok) {
+          throw new ApiError(
+            response.status,
+            extractMessage(payload, response.statusText),
+            payload,
+          )
+        }
+
+        return payload
+      }
+
+      function visibleProducts() {
+        return state.productFilter ? [state.productFilter] : state.products
+      }
+
+      function visibleCategories() {
+        if (state.categoryFilter === null) return state.categories
+        return state.categories.filter((category) => Number(category.id) === Number(state.categoryFilter))
+      }
+
+      function categoryName(id) {
+        const category = state.categories.find((item) => Number(item.id) === Number(id))
+        return category ? category.name : `#${id}`
+      }
+
+      function renderProducts() {
+        const rows = visibleProducts()
+        els.productsCount.textContent = String(rows.length)
+
+        if (!rows.length) {
+          const message = state.productFilter
+            ? 'No se encontró el producto.'
+            : 'No hay productos para mostrar.'
+          els.productsBody.innerHTML = `<tr><td colspan="6" class="empty">${message}</td></tr>`
+          return
+        }
+
+        els.productsBody.innerHTML = rows.map((product) => {
+          const details = product.details
+            ? escapeHtml(product.details)
+            : '<span class="muted">sin detalles</span>'
+          const created = formatDate(product.createdAt)
+          const sub = `${details}${created ? ` · ${escapeHtml(created)}` : ''}`
+
+          return `
+            <tr>
+              <td class="id">${Number(product.id)}</td>
+              <td>
+                <strong>${escapeHtml(product.name)}</strong>
+                <div class="sub">${sub}</div>
+              </td>
+              <td class="num" title="${Number(product.priceCents)} centavos">${escapeHtml(formatMoney(product.priceCents))}</td>
+              <td class="num">${Number(product.stock)}</td>
+              <td>${escapeHtml(categoryName(product.categoryId))}</td>
+              <td class="actions">
+                <button type="button" class="btn small" data-action="edit-product" data-id="${Number(product.id)}">Editar</button>
+                <button type="button" class="btn small danger" data-action="delete-product" data-id="${Number(product.id)}">Eliminar</button>
+              </td>
+            </tr>
+          `
+        }).join('')
+      }
+
+      function renderCategories() {
+        const rows = visibleCategories()
+        els.categoriesCount.textContent = String(rows.length)
+
+        if (!rows.length) {
+          const message = state.categoryFilter !== null
+            ? 'No se encontró la categoría.'
+            : 'No hay categorías para mostrar.'
+          els.categoriesBody.innerHTML = `<tr><td colspan="3" class="empty">${message}</td></tr>`
+          return
+        }
+
+        els.categoriesBody.innerHTML = rows.map((category) => {
+          const productCount = state.products.filter(
+            (product) => Number(product.categoryId) === Number(category.id),
+          ).length
+          const label = productCount === 1 ? '1 producto' : `${productCount} productos`
+
+          return `
+            <tr>
+              <td class="id">${Number(category.id)}</td>
+              <td>
+                <strong>${escapeHtml(category.name)}</strong>
+                <div class="sub">${label}</div>
+              </td>
+              <td class="actions">
+                <button type="button" class="btn small" data-action="edit-category" data-id="${Number(category.id)}">Editar</button>
+                <button type="button" class="btn small danger" data-action="delete-category" data-id="${Number(category.id)}">Eliminar</button>
+              </td>
+            </tr>
+          `
+        }).join('')
+      }
+
+      function populateCategorySelect() {
+        const select = els.productCategoryId
+        const selected = select.value || (state.editingProduct
+          ? String(state.editingProduct.categoryId)
+          : '')
+
+        let html = ''
+
+        if (state.categories.length) {
+          html += '<option value="">Seleccioná una categoría…</option>'
+          html += state.categories.map((category) => (
+            `<option value="${Number(category.id)}">${escapeHtml(category.name)} (#${Number(category.id)})</option>`
+          )).join('')
+        } else {
+          html += '<option value="">No hay categorías: creá una primero</option>'
+        }
+
+        if (selected && !state.categories.some((category) => String(category.id) === selected)) {
+          html += `<option value="${escapeHtml(selected)}">Categoría ${escapeHtml(selected)} (no encontrada)</option>`
+        }
+
+        select.innerHTML = html
+
+        if (selected && Array.from(select.options).some((option) => option.value === selected)) {
+          select.value = selected
+        }
+      }
+
+      function syncFilters() {
+        if (state.productFilter) {
+          const currentId = Number(state.productFilter.id)
+          state.productFilter = state.products.find(
+            (product) => Number(product.id) === currentId,
+          ) ?? null
+        }
+
+        if (state.categoryFilter !== null
+          && !state.categories.some((category) => Number(category.id) === Number(state.categoryFilter))) {
+          state.categoryFilter = null
+        }
+      }
+
+      async function loadProducts() {
+        const rows = await api('/products')
+        state.products = Array.isArray(rows) ? rows : []
+        syncFilters()
+        renderProducts()
+        renderCategories()
+      }
+
+      async function loadCategories() {
+        const rows = await api('/categories')
+        state.categories = Array.isArray(rows) ? rows : []
+        syncFilters()
+        populateCategorySelect()
+        renderCategories()
+        renderProducts()
+      }
+
+      async function refreshAll({ quiet = false } = {}) {
+        const [categoriesResult, productsResult] = await Promise.allSettled([
+          api('/categories'),
+          api('/products'),
+        ])
+
+        const errors = []
+
+        if (categoriesResult.status === 'fulfilled') {
+          state.categories = Array.isArray(categoriesResult.value) ? categoriesResult.value : []
+        } else {
+          errors.push(`Categorías: ${describeError(categoriesResult.reason)}`)
+        }
+
+        if (productsResult.status === 'fulfilled') {
+          state.products = Array.isArray(productsResult.value) ? productsResult.value : []
+        } else {
+          errors.push(`Productos: ${describeError(productsResult.reason)}`)
+        }
+
+        syncFilters()
+        populateCategorySelect()
+        renderProducts()
+        renderCategories()
+
+        if (errors.length && !quiet) {
+          showToast(errors.join(' · '), 'error')
+        }
+
+        return errors.length === 0
+      }
+
+      function field(form, name) {
+        return form.elements.namedItem(name)
+      }
+
+      function resetProductForm() {
+        state.editingProduct = null
+        els.productForm.reset()
+        els.productSubmit.textContent = 'Crear producto'
+        els.productCancel.hidden = true
+        populateCategorySelect()
+      }
+
+      function startEditProduct(id) {
+        const product = state.products.find((item) => Number(item.id) === Number(id))
+        if (!product) return
+
+        state.editingProduct = product
+
+        field(els.productForm, 'name').value = product.name ?? ''
+        field(els.productForm, 'details').value = product.details ?? ''
+        field(els.productForm, 'priceCents').value = String(product.priceCents)
+        field(els.productForm, 'stock').value = String(product.stock)
+
+        populateCategorySelect()
+        field(els.productForm, 'categoryId').value = String(product.categoryId)
+
+        els.productSubmit.textContent = 'Guardar cambios'
+        els.productCancel.hidden = false
+        els.productForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+        field(els.productForm, 'name').focus()
+      }
+
+      function resetCategoryForm() {
+        state.editingCategory = null
+        els.categoryForm.reset()
+        els.categorySubmit.textContent = 'Crear categoría'
+        els.categoryCancel.hidden = true
+      }
+
+      function startEditCategory(id) {
+        const category = state.categories.find((item) => Number(item.id) === Number(id))
+        if (!category) return
+
+        state.editingCategory = category
+        field(els.categoryForm, 'name').value = category.name ?? ''
+        els.categorySubmit.textContent = 'Guardar cambios'
+        els.categoryCancel.hidden = false
+        els.categoryForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+        field(els.categoryForm, 'name').focus()
+      }
+
+      async function searchProduct() {
+        const id = Number(els.productSearchId.value)
+
+        if (!Number.isInteger(id) || id < 1) {
+          showToast('Ingresá un ID de producto válido.', 'error')
+          return
+        }
+
+        try {
+          const product = await api(`/products/${id}`)
+          const index = state.products.findIndex((item) => Number(item.id) === id)
+
+          if (index >= 0) {
+            state.products[index] = product
+          } else {
+            state.products.push(product)
+          }
+
+          state.productFilter = product
+          renderProducts()
+          renderCategories()
+          showToast(`Producto #${id} encontrado.`, 'success')
+        } catch (error) {
+          showToast(describeError(error), 'error')
+        }
+      }
+
+      async function searchCategory() {
+        const id = Number(els.categorySearchId.value)
+
+        if (!Number.isInteger(id) || id < 1) {
+          showToast('Ingresá un ID de categoría válido.', 'error')
+          return
+        }
+
+        try {
+          const category = await api(`/categories/${id}`)
+          const index = state.categories.findIndex((item) => Number(item.id) === id)
+
+          if (index >= 0) {
+            state.categories[index] = category
+          } else {
+            state.categories.push(category)
+          }
+
+          state.categoryFilter = Number(category.id)
+          populateCategorySelect()
+          renderCategories()
+          renderProducts()
+          showToast(`Categoría #${id} encontrada.`, 'success')
+        } catch (error) {
+          showToast(describeError(error), 'error')
+        }
+      }
+
+      async function deleteProduct(id) {
+        const product = state.products.find((item) => Number(item.id) === Number(id))
+        if (!product) return
+
+        if (!window.confirm(`¿Eliminar el producto "${product.name}"?`)) return
+
+        try {
+          await api(`/products/${id}`, { method: 'DELETE' })
+
+          if (state.editingProduct && Number(state.editingProduct.id) === Number(id)) {
+            resetProductForm()
+          }
+
+          showToast(`Producto #${id} eliminado.`, 'success')
+          await refreshAll()
+        } catch (error) {
+          showToast(describeError(error), 'error')
+        }
+      }
+
+      async function deleteCategory(id) {
+        const category = state.categories.find((item) => Number(item.id) === Number(id))
+        if (!category) return
+
+        if (!window.confirm(`¿Eliminar la categoría "${category.name}"?`)) return
+
+        try {
+          await api(`/categories/${id}`, { method: 'DELETE' })
+
+          if (state.editingCategory && Number(state.editingCategory.id) === Number(id)) {
+            resetCategoryForm()
+          }
+
+          showToast(`Categoría #${id} eliminada.`, 'success')
+          await refreshAll()
+        } catch (error) {
+          showToast(describeError(error), 'error')
+        }
+      }
+
+      async function onSubmitProduct(event) {
+        event.preventDefault()
+
+        const data = new FormData(els.productForm)
+        const name = String(data.get('name') ?? '').trim()
+        const details = String(data.get('details') ?? '').trim()
+        const priceCents = Number(data.get('priceCents'))
+        const stock = Number(data.get('stock'))
+        const categoryId = Number(data.get('categoryId'))
+
+        if (name.length < 3) {
+          showToast('El nombre debe tener al menos 3 caracteres.', 'error')
+          return
+        }
+
+        if (details && details.length < 3) {
+          showToast('Los detalles deben tener al menos 3 caracteres, o quedar vacíos.', 'error')
+          return
+        }
+
+        if (!Number.isInteger(priceCents) || priceCents < 1) {
+          showToast('El precio debe ser un entero positivo en centavos.', 'error')
+          return
+        }
+
+        if (!Number.isInteger(stock) || stock < 0) {
+          showToast('El stock debe ser un entero mayor o igual a 0.', 'error')
+          return
+        }
+
+        if (!Number.isInteger(categoryId) || categoryId < 1) {
+          showToast('Seleccioná una categoría.', 'error')
+          return
+        }
+
+        els.productSubmit.disabled = true
+
+        try {
+          if (state.editingProduct) {
+            const original = state.editingProduct
+            const changes = {}
+
+            if (name !== original.name) changes.name = name
+            if (details && details !== (original.details ?? '')) changes.details = details
+            if (priceCents !== Number(original.priceCents)) changes.priceCents = priceCents
+            if (stock !== Number(original.stock)) changes.stock = stock
+            if (categoryId !== Number(original.categoryId)) changes.categoryId = categoryId
+
+            if (!Object.keys(changes).length) {
+              showToast('No hay cambios para guardar.', 'info')
+              return
+            }
+
+            const product = await api(`/products/${original.id}`, {
+              method: 'PATCH',
+              body: JSON.stringify(changes),
+            })
+
+            showToast(`Producto #${product.id} actualizado.`, 'success')
+            resetProductForm()
+          } else {
+            const payload = { name, priceCents, stock, categoryId }
+            if (details) payload.details = details
+
+            const product = await api('/products', {
+              method: 'POST',
+              body: JSON.stringify(payload),
+            })
+
+            showToast(`Producto #${product.id} creado.`, 'success')
+            state.productFilter = null
+            els.productSearchId.value = ''
+            resetProductForm()
+          }
+
+          await refreshAll()
+        } catch (error) {
+          showToast(describeError(error), 'error')
+        } finally {
+          els.productSubmit.disabled = false
+        }
+      }
+
+      async function onSubmitCategory(event) {
+        event.preventDefault()
+
+        const data = new FormData(els.categoryForm)
+        const name = String(data.get('name') ?? '').trim()
+
+        if (name.length < 3) {
+          showToast('El nombre debe tener al menos 3 caracteres.', 'error')
+          return
+        }
+
+        els.categorySubmit.disabled = true
+
+        try {
+          if (state.editingCategory) {
+            if (name === state.editingCategory.name) {
+              showToast('No hay cambios para guardar.', 'info')
+              return
+            }
+
+            const category = await api(`/categories/${state.editingCategory.id}`, {
+              method: 'PATCH',
+              body: JSON.stringify({ name }),
+            })
+
+            showToast(`Categoría #${category.id} actualizada.`, 'success')
+            resetCategoryForm()
+          } else {
+            const category = await api('/categories', {
+              method: 'POST',
+              body: JSON.stringify({ name }),
+            })
+
+            showToast(`Categoría #${category.id} creada.`, 'success')
+            state.categoryFilter = null
+            els.categorySearchId.value = ''
+            resetCategoryForm()
+          }
+
+          await refreshAll()
+        } catch (error) {
+          showToast(describeError(error), 'error')
+        } finally {
+          els.categorySubmit.disabled = false
+        }
+      }
+
+      async function onProductTableClick(event) {
+        if (!(event.target instanceof Element)) return
+
+        const button = event.target.closest('button[data-action]')
+        if (!button) return
+
+        const id = Number(button.dataset.id)
+
+        if (button.dataset.action === 'edit-product') {
+          startEditProduct(id)
+        } else if (button.dataset.action === 'delete-product') {
+          await deleteProduct(id)
+        }
+      }
+
+      async function onCategoryTableClick(event) {
+        if (!(event.target instanceof Element)) return
+
+        const button = event.target.closest('button[data-action]')
+        if (!button) return
+
+        const id = Number(button.dataset.id)
+
+        if (button.dataset.action === 'edit-category') {
+          startEditCategory(id)
+        } else if (button.dataset.action === 'delete-category') {
+          await deleteCategory(id)
+        }
+      }
+
+      function wireEvents() {
+        els.productForm.addEventListener('submit', onSubmitProduct)
+        els.categoryForm.addEventListener('submit', onSubmitCategory)
+
+        els.productsBody.addEventListener('click', onProductTableClick)
+        els.categoriesBody.addEventListener('click', onCategoryTableClick)
+
+        els.productSearchForm.addEventListener('submit', (event) => {
+          event.preventDefault()
+          searchProduct()
+        })
+
+        els.categorySearchForm.addEventListener('submit', (event) => {
+          event.preventDefault()
+          searchCategory()
+        })
+
+        els.productCancel.addEventListener('click', resetProductForm)
+        els.categoryCancel.addEventListener('click', resetCategoryForm)
+
+        els.productListAll.addEventListener('click', async () => {
+          els.productSearchId.value = ''
+          state.productFilter = null
+
+          try {
+            await loadProducts()
+          } catch (error) {
+            showToast(describeError(error), 'error')
+          }
+        })
+
+        els.categoryListAll.addEventListener('click', async () => {
+          els.categorySearchId.value = ''
+          state.categoryFilter = null
+
+          try {
+            await loadCategories()
+          } catch (error) {
+            showToast(describeError(error), 'error')
+          }
+        })
+
+        els.refreshProducts.addEventListener('click', async () => {
+          els.refreshProducts.disabled = true
+
+          try {
+            await loadProducts()
+          } catch (error) {
+            showToast(describeError(error), 'error')
+          } finally {
+            els.refreshProducts.disabled = false
+          }
+        })
+
+        els.refreshCategories.addEventListener('click', async () => {
+          els.refreshCategories.disabled = true
+
+          try {
+            await loadCategories()
+          } catch (error) {
+            showToast(describeError(error), 'error')
+          } finally {
+            els.refreshCategories.disabled = false
+          }
+        })
+
+        els.saveApiBase.addEventListener('click', async () => {
+          state.apiBase = normalizeBase(els.apiBase.value)
+          els.apiBase.value = state.apiBase
+          storeBase(state.apiBase)
+
+          showToast(
+            state.apiBase ? `Usando ${state.apiBase}` : 'Usando el mismo origen.',
+            'success',
+          )
+
+          await refreshAll()
+        })
+
+        els.testApi.addEventListener('click', async () => {
+          const previousBase = state.apiBase
+          state.apiBase = normalizeBase(els.apiBase.value)
+          els.testApi.disabled = true
+
+          try {
+            const categories = await api('/categories')
+            const count = Array.isArray(categories) ? categories.length : 0
+            showToast(`Conexión OK · ${count} categoría${count === 1 ? '' : 's'}.`, 'success')
+          } catch (error) {
+            showToast(describeError(error), 'error')
+          } finally {
+            state.apiBase = previousBase
+            els.testApi.disabled = false
+          }
+        })
+      }
+
+      function init() {
+        const storedBase = readStoredBase()
+        state.apiBase = normalizeSavedBase(storedBase)
+        els.apiBase.value = state.apiBase
+        els.apiBase.placeholder = defaultApiBase()
+
+        wireEvents()
+        populateCategorySelect()
+        renderProducts()
+        renderCategories()
+        refreshAll()
+      }
+
+      init()
+    })()
+  </script>
+</body>
+</html>
