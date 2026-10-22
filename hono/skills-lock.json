@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "drizzle-orm": {
+      "source": "oakoss/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/drizzle-orm/SKILL.md",
+      "computedHash": "e2cc18721f3a4eb57f5b948d9cf3e33e3f8d5a954687efc5c1dcae297b9e6913"
+    }
+  }
+}
