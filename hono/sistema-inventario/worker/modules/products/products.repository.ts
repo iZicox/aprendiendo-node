@@ -1,0 +1,81 @@
+// worker/modules/products/products.repository.ts
+// Única capa que habla con la base de datos (Drizzle + D1).
+import { count, eq, sql } from 'drizzle-orm'
+import type { DrizzleD1Database } from 'drizzle-orm/d1'
+import { movement, product, stock } from '../../db/schema'
+
+export type Product = typeof product.$inferSelect
+export type NewProduct = typeof product.$inferInsert
+export type ProductWithStock = Product & { totalStock: number }
+
+// Columnas del producto + stock total sumado entre todas las ubicaciones.
+const productWithStock = {
+    id: product.id,
+    sku: product.sku,
+    createdAt: product.createdAt,
+    updatedAt: product.updatedAt,
+    totalStock: sql<number>`coalesce(sum(${stock.quantity}), 0)`.mapWith(Number),
+}
+
+export class ProductsRepository {
+    constructor(private db: DrizzleD1Database) { }
+
+    findAll() {
+        return this.db
+            .select(productWithStock)
+            .from(product)
+            .leftJoin(stock, eq(stock.productId, product.id))
+            .groupBy(product.id)
+            .orderBy(product.sku)
+    }
+
+    async findById(id: number) {
+        const [row] = await this.db
+            .select(productWithStock)
+            .from(product)
+            .leftJoin(stock, eq(stock.productId, product.id))
+            .where(eq(product.id, id))
+            .groupBy(product.id)
+            .limit(1)
+        return row
+    }
+
+    async findBySku(sku: string) {
+        const [row] = await this.db
+            .select()
+            .from(product)
+            .where(eq(product.sku, sku))
+            .limit(1)
+        return row
+    }
+
+    async create(data: Pick<NewProduct, 'sku'>) {
+        const [row] = await this.db.insert(product).values(data).returning()
+        return row
+    }
+
+    async update(id: number, data: Pick<NewProduct, 'sku'>) {
+        const [row] = await this.db
+            .update(product)
+            .set({ ...data, updatedAt: sql`(datetime('now'))` })
+            .where(eq(product.id, id))
+            .returning()
+        return row
+    }
+
+    async hasMovements(id: number) {
+        const [row] = await this.db
+            .select({ total: count() })
+            .from(movement)
+            .where(eq(movement.productId, id))
+        return row.total > 0
+    }
+
+    // batch = ejecución atómica en D1 (no se usa BEGIN TRANSACTION).
+    async delete(id: number) {
+        await this.db.batch([
+            this.db.delete(stock).where(eq(stock.productId, id)),
+            this.db.delete(product).where(eq(product.id, id)),
+        ])
+    }
+}

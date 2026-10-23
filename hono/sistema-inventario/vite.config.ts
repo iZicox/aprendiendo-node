@@ -1,7 +1,12 @@
-import { cloudflare } from '@cloudflare/vite-plugin'
+import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
-import ssrPlugin from 'vite-ssr-components/plugin'
+import { cloudflare } from '@cloudflare/vite-plugin'
 
+
+// https://vite.dev/config/
 export default defineConfig({
-  plugins: [cloudflare(), ssrPlugin()]
+  plugins: [
+    react(),
+    cloudflare() // esto es para cargar el worker
+  ],
 })

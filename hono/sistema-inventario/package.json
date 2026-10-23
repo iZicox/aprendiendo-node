@@ -1,21 +1,53 @@
 {
   "name": "sistema-inventario",
+  "private": true,
+  "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "preview": "$npm_execpath run build && vite preview",
-    "deploy": "$npm_execpath run build && wrangler deploy",
-    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
-    "generate-types": "wrangler types"
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "deploy": "npm run build && wrangler deploy",
+    "cf-typegen": "wrangler types",
+    "db:generate": "drizzle-kit generate",
+    "db:apply:local": "wrangler d1 migrations apply d1-local-con-drizzle --local",
+    "db:list:local": "wrangler d1 migrations list d1-local-con-drizzle --local",
+    "db:seed:local": "wrangler d1 execute d1-local-con-drizzle --local --file=./seed.sql",
+    "db:reset:local": "rm -rf .wrangler/state && npm run db:apply:local && npm run db:seed:local",
+    "db:apply:remote": "wrangler d1 migrations apply d1-local-con-drizzle --remote",
+    "db:list:remote": "wrangler d1 migrations list d1-local-con-drizzle --remote",
+    "db:seed:remote": "wrangler d1 execute d1-local-con-drizzle --remote --file=./seed.sql"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^14.4.2",
-    "astro": "^7.4.2",
-    "hono": "^4.13.13"
+    "@hono/zod-validator": "^0.9.1",
+    "bootstrap": "^5.3.8",
+    "drizzle-orm": "^0.45.4",
+    "hono": "^4.13.13",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
-    "vite": "^8.1.4",
+    "@cloudflare/vite-plugin": "^1.65.0",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.19.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "drizzle-kit": "^0.31.11",
+    "eslint": "^10.13.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.13.0",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.2",
+    "vite": "^8.3.4",
     "wrangler": "^4.152.0"
+  },
+  "allowScripts": {
+    "@cloudflare/vite-plugin@1.65.0": true,
+    "wrangler@4.152.0": true,
+    "esbuild@0.28.2": true,
+    "workerd@1.20261019.1": true
   }
 }

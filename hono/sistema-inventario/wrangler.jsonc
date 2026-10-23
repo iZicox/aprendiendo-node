@@ -1,6 +1,23 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "sistema-inventario",
-  "compatibility_date": "2025-08-03",
-  "main": "./src/index.tsx"
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "mi-app",
+    "main": "worker/index.ts",
+    "compatibility_date": "2026-10-01",
+    "assets": {
+        "not_found_handling": "single-page-application",
+        "run_worker_first": [
+            "/api/*"
+        ]
+    },
+    "observability": {
+        "enabled": true
+    },
+    "d1_databases": [
+        {
+            "binding": "DB",
+            "database_name": "d1-local-con-drizzle",
+            "database_id": "PEGA-AQUI-EL-ID",
+            "migrations_dir": "migrations"
+        }
+    ]
 }
