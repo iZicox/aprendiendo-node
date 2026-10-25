@@ -1,0 +1,14 @@
+POST http://localhost:5173/api/products
+Content-Type: application/json
+
+{
+    "sku": "prueba"
+}
+
+###
+
+http://localhost:5173/api/products
+
+###
+
+DELETE http://localhost:5173/api/products/11

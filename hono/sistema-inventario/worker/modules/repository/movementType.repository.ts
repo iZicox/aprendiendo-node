@@ -1,0 +1,27 @@
+import { DrizzleD1Database } from "drizzle-orm/d1"
+import { movementType } from "../../db/schema"
+import { eq } from "drizzle-orm"
+
+// esto necesita select all, select code
+
+export type MovementTypeSelect = typeof movementType.$inferSelect
+
+export class MovementTypeRepository {
+    constructor(private db: DrizzleD1Database) { }
+
+    findAll() {
+        return this.db
+            .select()
+            .from(movementType)
+    }
+
+    async findByCode(code: string) {
+        const [row] = await this.db // usa await por la desconstruccion []
+            .select()
+            .from(movementType)
+            .where(eq(movementType.code, code))
+
+        return row
+
+    }
+}

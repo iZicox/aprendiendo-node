@@ -1,8 +1,8 @@
 // worker/modules/products/products.service.ts
 // Reglas de negocio. No conoce Hono ni SQL.
 import { ConflictError, NotFoundError } from '../../lib/errors'
-import type { ProductsRepository } from './products.repository'
-import type { CreateProductInput, UpdateProductInput } from './products.schema'
+import type { ProductsRepository } from '../repository/products.repository'
+import type { CreateProductInput, UpdateProductInput } from '../validators'
 
 export class ProductsService {
     constructor(private repo: ProductsRepository) { }

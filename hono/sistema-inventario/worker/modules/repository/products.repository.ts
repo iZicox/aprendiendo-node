@@ -1,5 +1,3 @@
-// worker/modules/products/products.repository.ts
-// Única capa que habla con la base de datos (Drizzle + D1).
 import { count, eq, sql } from 'drizzle-orm'
 import type { DrizzleD1Database } from 'drizzle-orm/d1'
 import { movement, product, stock } from '../../db/schema'
@@ -8,13 +6,11 @@ export type Product = typeof product.$inferSelect
 export type NewProduct = typeof product.$inferInsert
 export type ProductWithStock = Product & { totalStock: number }
 
-// Columnas del producto + stock total sumado entre todas las ubicaciones.
-const productWithStock = {
+const productSelect = {
     id: product.id,
     sku: product.sku,
     createdAt: product.createdAt,
-    updatedAt: product.updatedAt,
-    totalStock: sql<number>`coalesce(sum(${stock.quantity}), 0)`.mapWith(Number),
+    updatedAt: product.updatedAt
 }
 
 export class ProductsRepository {
@@ -22,20 +18,15 @@ export class ProductsRepository {
 
     findAll() {
         return this.db
-            .select(productWithStock)
+            .select(productSelect)
             .from(product)
-            .leftJoin(stock, eq(stock.productId, product.id))
-            .groupBy(product.id)
-            .orderBy(product.sku)
     }
 
     async findById(id: number) {
         const [row] = await this.db
-            .select(productWithStock)
+            .select(productSelect)
             .from(product)
-            .leftJoin(stock, eq(stock.productId, product.id))
             .where(eq(product.id, id))
-            .groupBy(product.id)
             .limit(1)
         return row
     }
@@ -49,12 +40,12 @@ export class ProductsRepository {
         return row
     }
 
-    async create(data: Pick<NewProduct, 'sku'>) {
+    async create(data: NewProduct) {
         const [row] = await this.db.insert(product).values(data).returning()
         return row
     }
 
-    async update(id: number, data: Pick<NewProduct, 'sku'>) {
+    async update(id: number, data: NewProduct) {
         const [row] = await this.db
             .update(product)
             .set({ ...data, updatedAt: sql`(datetime('now'))` })
