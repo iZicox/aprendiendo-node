@@ -46,3 +46,22 @@ export const skuParamSchema = createProductSchema
 export const createLocationSchema = z.object({
   code: z.string().min(1).max(50).toUpperCase(),
 })
+
+/**
+ * Validadores para Movement
+ */
+
+export const locationProductParamSchema = z.object({
+  locationId: z.coerce.number().int().positive(),
+  productId: z.coerce.number().int().positive(),
+})
+
+export const createMovementSchema = z.object({
+  productId: z.coerce.number().int().positive(),
+  locationId: z.coerce.number().int().positive(),
+  movementTypeCode: z.string().trim().min(1).toUpperCase(),
+  quantity: z.coerce.number().int().positive(),
+  transferId: z.string().trim().min(1).optional(),
+  note: z.string().trim().min(1).optional(),
+  sign: z.union([z.literal(1), z.literal(-1)]),
+})

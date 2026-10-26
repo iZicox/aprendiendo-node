@@ -1,4 +1,5 @@
 import {
+  createMovementSchema,
   createProductSchema,
   paginationQuerySchema,
   updateProductSchema,
@@ -44,3 +45,6 @@ export type Page<T> = {
 export type NewMovement = typeof movement.$inferInsert
 export type SelectMovement = typeof movement.$inferSelect
 export type MovementSign = 1 | -1
+
+// para el body de post
+export type CreateMovementInput = z.infer<typeof createMovementSchema>
