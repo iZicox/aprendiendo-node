@@ -4,7 +4,12 @@ import { MovementTypeRepository } from "../repository/movementType.repository";
 
 
 export class MovementTypeService {
-    constructor(private repo: MovementTypeRepository) { }
+
+    private repo: MovementTypeRepository
+
+    constructor(repo: MovementTypeRepository) {
+        this.repo = repo
+    }
 
     getAll() {
         const data = this.repo.findAll()

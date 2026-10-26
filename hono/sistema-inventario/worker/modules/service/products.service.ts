@@ -5,7 +5,12 @@ import type { ProductsRepository } from '../repository/products.repository'
 import type { CreateProductInput, UpdateProductInput } from '../validators'
 
 export class ProductsService {
-    constructor(private repo: ProductsRepository) { }
+
+    private repo: ProductsRepository
+
+    constructor(repo: ProductsRepository) {
+        this.repo = repo
+    }
 
     getAll() {
         return this.repo.findAll()

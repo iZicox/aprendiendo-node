@@ -7,7 +7,11 @@ import { eq } from "drizzle-orm"
 export type MovementTypeSelect = typeof movementType.$inferSelect
 
 export class MovementTypeRepository {
-    constructor(private db: DrizzleD1Database) { }
+    private db: DrizzleD1Database
+
+    constructor(db: DrizzleD1Database) {
+        this.db = db
+    }
 
     findAll() {
         return this.db

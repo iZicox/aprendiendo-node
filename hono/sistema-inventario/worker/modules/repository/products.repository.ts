@@ -14,7 +14,11 @@ const productSelect = {
 }
 
 export class ProductsRepository {
-    constructor(private db: DrizzleD1Database) { }
+    private db: DrizzleD1Database
+
+    constructor(db: DrizzleD1Database) {
+        this.db = db
+    }
 
     findAll() {
         return this.db

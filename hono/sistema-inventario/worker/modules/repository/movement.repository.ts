@@ -5,7 +5,12 @@ import { and, eq, sql } from "drizzle-orm";
 export type newMovement = typeof movement.$inferInsert
 
 export class MovementRepository {
-    constructor(private db: DrizzleD1Database) { }
+
+    private db: DrizzleD1Database
+
+    constructor(db: DrizzleD1Database) {
+        this.db = db
+    }
 
     findAll() {
         return this.db
