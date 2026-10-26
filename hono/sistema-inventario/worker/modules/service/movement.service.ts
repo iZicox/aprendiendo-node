@@ -1,5 +1,5 @@
 import { MovementSign, NewMovement, SelectMovement } from '../../db/types'
-import { NotFoundError } from '../../lib/errors'
+import { IllegalMovement, NotFoundError } from '../../lib/errors'
 import { MovementRepository } from '../repository/movement.repository'
 
 export class MovementService {
@@ -48,6 +48,8 @@ export class MovementService {
     sign: MovementSign,
   ): Promise<SelectMovement> {
     try {
+      if (sign !== 1 && sign !== -1) throw new IllegalMovement('Movimiento no permitido')
+      if (movement.quantity <= 0) throw new Error('La cantidad debe ser mayor a cero')
       const newMovement = await this.repo.insert(movement, sign)
       return newMovement
     } catch (e) {
