@@ -1,11 +1,13 @@
 import { Hono } from 'hono'
 import { errorHandler } from './lib/errors'
+import { movementRoutes } from './modules/routes/movement.routes'
 import { movementTypeRoutes } from './modules/routes/movementType.routes'
 import { productsRoutes } from './modules/routes/products.routes'
 import { locationRoutes } from './modules/routes/location.routes'
 
 const api = new Hono<{ Bindings: Env }>()
   .basePath('/api')
+  .route('/movements', movementRoutes)
   .route('/movement-type', movementTypeRoutes)
   .route('/products', productsRoutes)
   .route('/locations', locationRoutes)

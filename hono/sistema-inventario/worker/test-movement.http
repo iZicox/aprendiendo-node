@@ -1,0 +1,36 @@
+
+// MOVEMENTS
+@url = http://localhost:5173/api/movements
+
+// listar todos
+GET {{url}}
+###
+// listar por id
+@idMovement = 1
+GET {{url}}/{{idMovement}}
+###
+// listar por producto
+@idProduct = 1
+GET {{url}}/product/{{idProduct}}
+###
+// listar por ubicacion
+@idLocation = 1
+GET {{url}}/location/{{idLocation}}
+###
+// listar por ubicacion y producto
+GET {{url}}/location/{{idLocation}}/product/{{idProduct}}
+###
+// crear
+POST {{url}}
+Content-Type: application/json
+
+{
+    "productId": 1,
+    "locationId": 2,
+    "movementTypeCode": "ENTRY",
+    "quantity": 5,
+    "note": "Prueba de movimiento",
+    "sign": 1
+}
+
+###
