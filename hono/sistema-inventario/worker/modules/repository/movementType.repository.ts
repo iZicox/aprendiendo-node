@@ -13,13 +13,13 @@ export class MovementTypeRepository {
         this.db = db
     }
 
-    findAll() {
+    findAll(): Promise<MovementTypeSelect[]> {
         return this.db
             .select()
             .from(movementType)
     }
 
-    async findByCode(code: string) {
+    async findByCode(code: string): Promise<MovementTypeSelect> {
         const [row] = await this.db // usa await por la desconstruccion []
             .select()
             .from(movementType)

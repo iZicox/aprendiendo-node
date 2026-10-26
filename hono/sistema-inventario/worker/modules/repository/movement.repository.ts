@@ -1,8 +1,9 @@
 import { DrizzleD1Database } from "drizzle-orm/d1";
 import { movement, stock } from "../../db/schema";
 import { and, eq, sql } from "drizzle-orm";
+import { MovementSign, NewMovement, SelectMovement } from "../../db/types";
 
-export type newMovement = typeof movement.$inferInsert
+
 
 export class MovementRepository {
 
@@ -12,39 +13,43 @@ export class MovementRepository {
         this.db = db
     }
 
-    findAll() {
-        return this.db
+    async findAll(): Promise<SelectMovement[]> {
+        const rows = await this.db
             .select()
             .from(movement)
             .orderBy(movement.createdAt)
+        return rows
     }
 
-    findById(id: number) {
-        return this.db
+    async findById(id: number): Promise<SelectMovement> {
+        const [row] = await this.db
             .select()
             .from(movement)
             .where(eq(movement.id, id))
             .orderBy(movement.createdAt)
+        return row
     }
 
-    findByProductId(id: number) {
-        return this.db
+    async findByProductId(id: number): Promise<SelectMovement[]> {
+        const rows = await this.db
             .select()
             .from(movement)
             .where(eq(movement.productId, id))
             .orderBy(movement.createdAt)
+        return rows
     }
 
-    findByLocationId(id: number) {
-        return this.db
+    async findByLocationId(id: number): Promise<SelectMovement[]> {
+        const rows = await this.db
             .select()
             .from(movement)
             .where(eq(movement.locationId, id))
             .orderBy(movement.createdAt)
+        return rows
     }
 
-    findByLocationIdAndProductId(locationId: number, productId: number) {
-        return this.db
+    async findByLocationIdAndProductId(locationId: number, productId: number): Promise<SelectMovement[]> {
+        const rows = await this.db
             .select()
             .from(movement)
             .where(
@@ -53,9 +58,10 @@ export class MovementRepository {
                     eq(movement.productId, productId)
                 )
             )
+        return rows
     }
 
-    async insert(data: newMovement, sign: number) {
+    async insert(data: NewMovement, sign: MovementSign): Promise<SelectMovement> {    
         // insertar movimiento
         const insertMovement = this.db
             .insert(movement)
