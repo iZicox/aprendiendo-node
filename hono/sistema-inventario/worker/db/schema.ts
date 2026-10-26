@@ -63,6 +63,7 @@ export const movement = sqliteTable(
             .notNull()
             .references(() => movementType.code),
         quantity: integer('quantity').notNull(),
+        transferId: text('transfer_id'),
         note: text('note'),
         createdAt: text('created_at')
             .notNull()

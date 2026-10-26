@@ -1,19 +1,14 @@
-import { z } from 'zod'
+import { Page, PaginationQuery } from "../db/types"
 
-export const paginationQuerySchema = z.object({
-    page: z.coerce.number().int().min(1).default(1),
-    pageSize: z.coerce.number().int().min(1).max(100).default(20)
-})
 
-export type PaginationQuery = z.infer<typeof paginationQuerySchema>
 
-export const toOffset = ({ page, pageSize }: PaginationQuery) => ( page - 1 ) * pageSize
+export const toOffset = ({ page, pageSize }: PaginationQuery): number => ( page - 1 ) * pageSize
 
-export const toPage = <T>(items: T[], total: number, { page, pageSize }: PaginationQuery) => {
+export const toPage = <T>(items: T[], total: number, { page, pageSize }: PaginationQuery): Page<T> => {
     const totalPages = Math.max(1, Math.ceil(total / pageSize))
     return {
         meta: {
-            page,
+            page, 
             pageSize,
             total,
             totalPages,
