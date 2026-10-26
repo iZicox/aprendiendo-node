@@ -22,34 +22,24 @@ insert into movement_type (
    description,
    sign
 ) values
-   ( 'ENTRY',
-     'Entrada de mercancía (compra a proveedor)',
-     1 ),
-   ( 'EXIT',
-     'Salida de mercancía (venta / envío)',
-     - 1 ),
-   ( 'RETURN',
-     'Devolución de cliente',
-     1 ),
-   ( 'DAMAGE',
-     'Baja por daño o merma',
-     - 1 ),
-   ( 'ADJUST_IN',
-     'Ajuste de inventario positivo',
-     1 ),
-   ( 'ADJUST_OUT',
-     'Ajuste de inventario negativo',
-     - 1 );
+   ('ENTRY',        'Entrada de mercancía (compra a proveedor)',  1),
+   ('EXIT',         'Salida de mercancía (venta / envío)',       -1),
+   ('RETURN',       'Devolución de cliente',                      1),
+   ('DAMAGE',       'Baja por daño o merma',                      -1),
+   ('ADJUST_IN',    'Ajuste de inventario positivo',               1),
+   ('ADJUST_OUT',   'Ajuste de inventario negativo',              -1),
+   ('TRANSFER_OUT', 'Salida por traspaso a otra ubicación',       -1),
+   ('TRANSFER_IN',  'Entrada por traspaso desde otra ubicación',   1);
 
 -- ------------------------------------------------------------
--- 2. Ubicación (en el MVP solo existe el almacén)
+-- 2. Ubicaciones
 -- ------------------------------------------------------------
 insert into location (
    id,
    code
 ) values
-   ( 1,
-     'WAREHOUSE' );
+   (1, 'WAREHOUSE'),
+   (2, 'WAREHOUSE_2');
 
 -- ------------------------------------------------------------
 -- 3. Productos (10)
@@ -318,8 +308,62 @@ insert into movement (
      '2026-10-20 16:20:00' );
 
 -- ------------------------------------------------------------
--- 5. Stock: proyección calculada a partir de los movimientos,
---    así siempre coincide con el historial.
+-- 4.1. Traspasos entre ubicaciones: 8 movimientos adicionales
+--
+-- Cada traspaso contiene:
+--   TRANSFER_OUT: resta en la ubicación de origen.
+--   TRANSFER_IN:  suma en la ubicación de destino.
+--
+-- Ambas filas tienen el mismo producto y cantidad.
+-- quantity siempre es positiva.
+-- ------------------------------------------------------------
+insert into movement (
+   id,
+   product_id,
+   location_id,
+   movementtypecode,
+   quantity,
+   note,
+   created_at
+) values
+   -- TRF-001: 5 portátiles de WAREHOUSE a WAREHOUSE_2.
+   (29, 1, 1, 'TRANSFER_OUT', 5,
+    'TRF-001 | WAREHOUSE -> WAREHOUSE_2',
+    '2026-10-21 09:00:00'),
+
+   (30, 1, 2, 'TRANSFER_IN', 5,
+    'TRF-001 | WAREHOUSE -> WAREHOUSE_2',
+    '2026-10-21 09:00:00'),
+
+   -- TRF-002: 20 ratones de WAREHOUSE a WAREHOUSE_2.
+   (31, 2, 1, 'TRANSFER_OUT', 20,
+    'TRF-002 | WAREHOUSE -> WAREHOUSE_2',
+    '2026-10-21 10:00:00'),
+
+   (32, 2, 2, 'TRANSFER_IN', 20,
+    'TRF-002 | WAREHOUSE -> WAREHOUSE_2',
+    '2026-10-21 10:00:00'),
+
+   -- TRF-003: 30 cables HDMI de WAREHOUSE a WAREHOUSE_2.
+   (33, 5, 1, 'TRANSFER_OUT', 30,
+    'TRF-003 | WAREHOUSE -> WAREHOUSE_2',
+    '2026-10-22 09:00:00'),
+
+   (34, 5, 2, 'TRANSFER_IN', 30,
+    'TRF-003 | WAREHOUSE -> WAREHOUSE_2',
+    '2026-10-22 09:00:00'),
+
+   -- TRF-004: regreso de 5 ratones a WAREHOUSE.
+   (35, 2, 2, 'TRANSFER_OUT', 5,
+    'TRF-004 | WAREHOUSE_2 -> WAREHOUSE',
+    '2026-10-23 11:00:00'),
+
+   (36, 2, 1, 'TRANSFER_IN', 5,
+    'TRF-004 | WAREHOUSE_2 -> WAREHOUSE',
+    '2026-10-23 11:00:00');
+
+-- ------------------------------------------------------------
+-- 5. Stock por producto y ubicación
 -- ------------------------------------------------------------
 insert into stock (
    product_id,
@@ -327,25 +371,14 @@ insert into stock (
    quantity,
    updated_at
 )
-   select m.product_id,
-          m.location_id,
-          sum(m.quantity * t.sign),
-          max(m.created_at)
-     from movement m
-     join movement_type t
+select
+   m.product_id,
+   m.location_id,
+   sum(m.quantity * t.sign),
+   max(m.created_at)
+from movement m
+join movement_type t
    on t.code = m.movementtypecode
-    group by m.product_id,
-             m.location_id;
-
--- ------------------------------------------------------------
--- Comprobación (opcional): stock esperado por producto
---   1 LAP-ACER-15 = 25     6 USB-32GB    = 106
---   2 MOU-LOG-M185 = 73    7 HDD-EXT-1TB = 20
---   3 KEY-MEC-RGB = 8      8 WEBCAM-1080 = 25
---   4 MON-24-FHD  = 19     9 HEAD-BT-01  = 35
---   5 CAB-HDMI-2M = 134   10 CHG-USBC-65 = 95
---
--- SELECT p.sku, s.quantity
--- FROM stock s JOIN product p ON p.id = s.product_id
--- ORDER BY p.id;
--- ------------------------------------------------------------
+group by
+   m.product_id,
+   m.location_id;
