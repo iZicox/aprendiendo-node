@@ -1,0 +1,10 @@
+
+// PRODUCTS
+@url = http://localhost:5173/api/movement-type
+
+// listar todos
+GET {{url}}
+###
+// listar por codigo
+@movementCode = ENTRY
+GET {{url}}/{{movementCode}}

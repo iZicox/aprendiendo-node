@@ -1,6 +1,7 @@
 // worker/modules/products/products.service.ts
 // Reglas de negocio. No conoce Hono ni SQL.
 import { ConflictError, NotFoundError } from '../../lib/errors'
+import { PaginationQuery, toPage } from '../../lib/pagination'
 import type { ProductsRepository } from '../repository/products.repository'
 import type { CreateProductInput, UpdateProductInput } from '../validators'
 
@@ -12,13 +13,20 @@ export class ProductsService {
         this.repo = repo
     }
 
-    getAll() {
-        return this.repo.findAll()
+    async getAll(query: PaginationQuery) {
+        const { items, total } = await this.repo.findAll(query)
+        return toPage(items, total, query)
     }
 
     async getById(id: number) {
         const found = await this.repo.findById(id)
         if (!found) throw new NotFoundError('Producto no encontrado')
+        return found
+    }
+
+    async getBySku(sku: string){
+        const found = await this.repo.findBySku(sku)
+        if(!found) throw new NotFoundError('Producto no encontrado')
         return found
     }
 

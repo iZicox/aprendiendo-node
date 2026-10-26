@@ -1,6 +1,7 @@
 import { count, eq, sql } from 'drizzle-orm'
 import type { DrizzleD1Database } from 'drizzle-orm/d1'
 import { movement, product, stock } from '../../db/schema'
+import { PaginationQuery, toOffset } from '../../lib/pagination'
 
 export type Product = typeof product.$inferSelect
 export type NewProduct = typeof product.$inferInsert
@@ -20,10 +21,18 @@ export class ProductsRepository {
         this.db = db
     }
 
-    findAll() {
-        return this.db
-            .select(productSelect)
-            .from(product)
+    async findAll(query: PaginationQuery) {
+        const [ items, [ { total } ] ] = await this.db.batch([
+            this.db
+                .select(productSelect)
+                .from(product)
+                .orderBy(product.id)
+                .limit(query.pageSize)
+                .offset(toOffset(query)),
+            this.db
+                .select({ total: count() }).from(product)
+        ])
+        return { items, total}
     }
 
     async findById(id: number) {
