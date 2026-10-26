@@ -1,0 +1,24 @@
+
+// PRODUCTS
+@url = http://localhost:5173/api/locations
+
+// listar todos
+GET {{url}}
+###
+// listar por id
+@idProduct = 14
+GET {{url}}/{{idProduct}}
+###
+// crear
+POST {{url}}
+Content-Type: application/json
+
+{
+    "code": "prueba"
+}
+
+###
+// eliminar
+DELETE {{url}}/4
+###
+

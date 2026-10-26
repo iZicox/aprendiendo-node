@@ -1,18 +1,8 @@
 import { count, eq, sql } from 'drizzle-orm'
 import type { DrizzleD1Database } from 'drizzle-orm/d1'
 import { movement, product, stock } from '../../db/schema'
-import { PaginationQuery, toOffset } from '../../lib/pagination'
-
-export type Product = typeof product.$inferSelect
-export type NewProduct = typeof product.$inferInsert
-export type ProductWithStock = Product & { totalStock: number }
-
-const productSelect = {
-    id: product.id,
-    sku: product.sku,
-    createdAt: product.createdAt,
-    updatedAt: product.updatedAt
-}
+import { toOffset } from '../../lib/pagination'
+import { FindAllProducts, NewProduct, PaginationQuery, Product } from '../../db/types'
 
 export class ProductsRepository {
     private db: DrizzleD1Database
@@ -21,10 +11,10 @@ export class ProductsRepository {
         this.db = db
     }
 
-    async findAll(query: PaginationQuery) {
+    async findAll(query: PaginationQuery): Promise<FindAllProducts> {
         const [ items, [ { total } ] ] = await this.db.batch([
             this.db
-                .select(productSelect)
+                .select()
                 .from(product)
                 .orderBy(product.id)
                 .limit(query.pageSize)
@@ -35,16 +25,16 @@ export class ProductsRepository {
         return { items, total}
     }
 
-    async findById(id: number) {
+    async findById(id: number): Promise<Product> {
         const [row] = await this.db
-            .select(productSelect)
+            .select()
             .from(product)
             .where(eq(product.id, id))
             .limit(1)
         return row
     }
 
-    async findBySku(sku: string) {
+    async findBySku(sku: string): Promise<Product> {
         const [row] = await this.db
             .select()
             .from(product)
@@ -53,12 +43,12 @@ export class ProductsRepository {
         return row
     }
 
-    async create(data: NewProduct) {
+    async create(data: NewProduct): Promise<NewProduct> {
         const [row] = await this.db.insert(product).values(data).returning()
         return row
     }
 
-    async update(id: number, data: NewProduct) {
+    async update(id: number, data: NewProduct): Promise<Product> {
         const [row] = await this.db
             .update(product)
             .set({ ...data, updatedAt: sql`(datetime('now'))` })
@@ -67,7 +57,7 @@ export class ProductsRepository {
         return row
     }
 
-    async hasMovements(id: number) {
+    async hasMovements(id: number): Promise<boolean> {
         const [row] = await this.db
             .select({ total: count() })
             .from(movement)
@@ -76,10 +66,11 @@ export class ProductsRepository {
     }
 
     // batch = ejecución atómica en D1 (no se usa BEGIN TRANSACTION).
-    async delete(id: number) {
-        await this.db.batch([
+    async delete(id: number): Promise<Product | undefined> {
+        const [, [row]] = await this.db.batch([
             this.db.delete(stock).where(eq(stock.productId, id)),
-            this.db.delete(product).where(eq(product.id, id)),
+            this.db.delete(product).where(eq(product.id, id)).returning(),
         ])
+        return row
     }
 }

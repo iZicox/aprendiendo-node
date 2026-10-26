@@ -2,13 +2,12 @@ import { drizzle } from "drizzle-orm/d1";
 import { createFactory } from "hono/factory";
 import { ProductsRepository } from "../repository/products.repository";
 import { ProductsService } from "../service/products.service";
-import { createProductSchema, idParamSchema, skuParamSchema, updateProductSchema } from "../validators";
+import { createProductSchema, idParamSchema, paginationQuerySchema, skuParamSchema, updateProductSchema } from "../validators";
 import { zValidator } from "@hono/zod-validator";
-import { paginationQuerySchema } from "../../lib/pagination";
 
 const factory = createFactory<{ Bindings: Env }>()
 
-function makeService(d1: D1Database) {
+function makeService(d1: D1Database): ProductsService {
     const db = drizzle(d1)
     const repo = new ProductsRepository(db)
     return new ProductsService(repo)
@@ -35,7 +34,8 @@ export const create = factory.createHandlers(zValidator('json', createProductSch
 
 export const remove = factory.createHandlers(zValidator('param', idParamSchema), async (c) => {
     const { id } = c.req.valid('param')
-    return c.json(await makeService(c.env.DB).remove(id))
+    await makeService(c.env.DB).remove(id)
+    return c.body(null, 204)
 })
 
 export const update = factory.createHandlers(zValidator('param', idParamSchema), zValidator('json', updateProductSchema),
@@ -43,4 +43,5 @@ export const update = factory.createHandlers(zValidator('param', idParamSchema),
         const { id } = c.req.valid('param')
         const body = c.req.valid('json')
         return c.json(await makeService(c.env.DB).update(id, body))
-    })
+    }
+)
