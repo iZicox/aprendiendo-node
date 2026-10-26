@@ -1,12 +1,12 @@
 
-// PRODUCTS
+// LOCATION
 @url = http://localhost:5173/api/locations
 
 // listar todos
 GET {{url}}
 ###
 // listar por id
-@idProduct = 14
+@idProduct = 5
 GET {{url}}/{{idProduct}}
 ###
 // crear
@@ -14,11 +14,11 @@ POST {{url}}
 Content-Type: application/json
 
 {
-    "code": "prueba"
+    "code": "prueba2"
 }
 
 ###
 // eliminar
-DELETE {{url}}/4
+DELETE {{url}}/8
 ###
 

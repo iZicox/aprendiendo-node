@@ -41,7 +41,6 @@ export default defineConfig([
     },
   },
 ])
-
 ```
 
 You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
@@ -71,8 +70,8 @@ export default defineConfig([
     },
   },
 ])
-
 ```
+
 # Guía completa: React + Hono en un único Cloudflare Worker
 
 ## 1. Crear el proyecto e instalar dependencias
@@ -116,9 +115,9 @@ export default defineConfig({
   "compatibility_date": "2026-10-01",
   "assets": {
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*"]
+    "run_worker_first": ["/api/*"],
   },
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
 }
 ```
 
@@ -130,7 +129,8 @@ export default defineConfig({
 ```ts
 import { Hono } from 'hono'
 
-const api = new Hono().basePath('/api')
+const api = new Hono()
+  .basePath('/api')
   .get('/hello', (c) => c.json({ message: 'Hola desde Hono' }))
 
 export default api
@@ -202,7 +202,8 @@ export default function App() {
   const [msg, setMsg] = useState('')
 
   useEffect(() => {
-    client.api.hello.$get()
+    client.api.hello
+      .$get()
       .then((r) => r.json())
       .then((d) => setMsg(d.message))
   }, [])
@@ -247,12 +248,12 @@ Te devuelve una URL `https://sistema-inventario.<subdominio>.workers.dev`, con R
 
 ## Tabla de errores y soluciones
 
-| Problema | Causa | Solución |
-|---|---|---|
-| Aviso `allow-scripts` | npm bloquea scripts de instalación | `npm approve-scripts esbuild workerd` |
-| `Unable to load schema ... worker/node_modules/...` | `wrangler.jsonc` dentro de `worker/` | Moverlo a la raíz |
-| `Definitions of the following identifiers conflict` (DOM) | Tipos DOM y Workers mezclados | `tsconfig.worker.json` sin `DOM` y referenciarlo |
-| `/api` devuelve el `index.html` | El fallback de SPA intercepta la ruta | `run_worker_first: ["/api/*"]` y rutas tipo `/api/hello` |
-| `npm run build` falla en `tsc -b` | Errores de tipos entre proyectos | Revisar los `include` de cada tsconfig |
+| Problema                                                  | Causa                                 | Solución                                                 |
+| --------------------------------------------------------- | ------------------------------------- | -------------------------------------------------------- |
+| Aviso `allow-scripts`                                     | npm bloquea scripts de instalación    | `npm approve-scripts esbuild workerd`                    |
+| `Unable to load schema ... worker/node_modules/...`       | `wrangler.jsonc` dentro de `worker/`  | Moverlo a la raíz                                        |
+| `Definitions of the following identifiers conflict` (DOM) | Tipos DOM y Workers mezclados         | `tsconfig.worker.json` sin `DOM` y referenciarlo         |
+| `/api` devuelve el `index.html`                           | El fallback de SPA intercepta la ruta | `run_worker_first: ["/api/*"]` y rutas tipo `/api/hello` |
+| `npm run build` falla en `tsc -b`                         | Errores de tipos entre proyectos      | Revisar los `include` de cada tsconfig                   |
 
 Cuando quieras, el siguiente paso natural para un inventario es añadir **D1**, la base de datos SQLite de Cloudflare. Te preparo esa configuración si quieres.

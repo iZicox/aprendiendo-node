@@ -1,7 +1,10 @@
-import { createProductSchema, paginationQuerySchema, updateProductSchema } from "../modules/validators"
-import { location, movement, product } from "./schema"
+import {
+  createProductSchema,
+  paginationQuerySchema,
+  updateProductSchema,
+} from '../modules/validators'
+import { location, movement, product } from './schema'
 import { z } from 'zod'
-
 
 // LOCATION
 export type InsertLocation = typeof location.$inferInsert
@@ -19,23 +22,22 @@ export type UpdateProductInput = z.infer<typeof updateProductSchema>
 
 // tipos de resultado
 export type FindAllProducts = {
-    items: Product[],
-    total: number
+  items: Product[]
+  total: number
 }
-
 
 // PAGINATION
 export type PaginationQuery = z.infer<typeof paginationQuerySchema>
 export type Page<T> = {
-    meta: {
-        page: number,
-        pageSize: number,
-        total: number,
-        totalPages: number,
-        hasPrev: boolean,
-        hasNext: boolean
-    },
-    items: T[]
+  meta: {
+    page: number
+    pageSize: number
+    total: number
+    totalPages: number
+    hasPrev: boolean
+    hasNext: boolean
+  }
+  items: T[]
 }
 
 // MOVEMENT

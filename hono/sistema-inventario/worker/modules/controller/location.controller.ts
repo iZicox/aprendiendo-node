@@ -1,36 +1,43 @@
-import { createFactory } from "hono/factory";
-import { LocationService } from "../service/location.service";
-import { drizzle } from "drizzle-orm/d1";
-import { LocationRepository } from "../repository/location.repository";
-import { zValidator } from "@hono/zod-validator";
-import { createLocationSchema, idParamSchema } from "../validators";
+import { createFactory } from 'hono/factory'
+import { LocationService } from '../service/location.service'
+import { drizzle } from 'drizzle-orm/d1'
+import { LocationRepository } from '../repository/location.repository'
+import { zValidator } from '@hono/zod-validator'
+import { createLocationSchema, idParamSchema } from '../validators'
 
+const factory = createFactory<{ Bindings: Env }>()
 
-
-
-const factory = createFactory<{Bindings: Env}>()
-
-function makeService(d1: D1Database): LocationService{
-    const db = drizzle(d1)
-    const repo = new LocationRepository(db)
-    return new LocationService(repo)
+function makeService(d1: D1Database): LocationService {
+  const db = drizzle(d1)
+  const repo = new LocationRepository(db)
+  return new LocationService(repo)
 }
 
-export const getAll = factory.createHandlers(async (c) =>{
-    return c.json(await makeService(c.env.DB).getAll())
+export const getAll = factory.createHandlers(async (c) => {
+  return c.json(await makeService(c.env.DB).getAll())
 })
 
-export const getById = factory.createHandlers(zValidator('param', idParamSchema), async (c) => {
+export const getById = factory.createHandlers(
+  zValidator('param', idParamSchema),
+  async (c) => {
     const { id } = c.req.valid('param')
     return c.json(await makeService(c.env.DB).getById(id))
-})
+  },
+)
 
-export const create = factory.createHandlers(zValidator('json', createLocationSchema), async (c) => {
+export const create = factory.createHandlers(
+  zValidator('json', createLocationSchema),
+  async (c) => {
     const body = c.req.valid('json')
     return c.json(await makeService(c.env.DB).create(body))
-})
+  },
+)
 
-export const deleteById = factory.createHandlers(zValidator('param', idParamSchema), async (c) => {
+export const deleteById = factory.createHandlers(
+  zValidator('param', idParamSchema),
+  async (c) => {
     const { id } = c.req.valid('param')
-    return c.json(await makeService(c.env.DB).delete(id))
-})
+    await makeService(c.env.DB).delete(id)
+    return c.body(null, 204)
+  },
+)

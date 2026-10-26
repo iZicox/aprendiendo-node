@@ -33,9 +33,7 @@
       "indexes": {
         "location_code_unique": {
           "name": "location_code_unique",
-          "columns": [
-            "code"
-          ],
+          "columns": ["code"],
           "isUnique": true
         }
       },
@@ -108,26 +106,17 @@
       "indexes": {
         "idx_movement_product": {
           "name": "idx_movement_product",
-          "columns": [
-            "product_id",
-            "created_at"
-          ],
+          "columns": ["product_id", "created_at"],
           "isUnique": false
         },
         "idx_movement_location": {
           "name": "idx_movement_location",
-          "columns": [
-            "location_id",
-            "created_at"
-          ],
+          "columns": ["location_id", "created_at"],
           "isUnique": false
         },
         "idx_movement_type": {
           "name": "idx_movement_type",
-          "columns": [
-            "movementTypeCode",
-            "created_at"
-          ],
+          "columns": ["movementTypeCode", "created_at"],
           "isUnique": false
         }
       },
@@ -136,12 +125,8 @@
           "name": "movement_product_id_product_id_fk",
           "tableFrom": "movement",
           "tableTo": "product",
-          "columnsFrom": [
-            "product_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -149,12 +134,8 @@
           "name": "movement_location_id_location_id_fk",
           "tableFrom": "movement",
           "tableTo": "location",
-          "columnsFrom": [
-            "location_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["location_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -162,12 +143,8 @@
           "name": "movement_movementTypeCode_movement_type_code_fk",
           "tableFrom": "movement",
           "tableTo": "movement_type",
-          "columnsFrom": [
-            "movementTypeCode"
-          ],
-          "columnsTo": [
-            "code"
-          ],
+          "columnsFrom": ["movementTypeCode"],
+          "columnsTo": ["code"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -257,9 +234,7 @@
       "indexes": {
         "product_sku_unique": {
           "name": "product_sku_unique",
-          "columns": [
-            "sku"
-          ],
+          "columns": ["sku"],
           "isUnique": true
         }
       },
@@ -308,12 +283,8 @@
           "name": "stock_product_id_product_id_fk",
           "tableFrom": "stock",
           "tableTo": "product",
-          "columnsFrom": [
-            "product_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -321,22 +292,15 @@
           "name": "stock_location_id_location_id_fk",
           "tableFrom": "stock",
           "tableTo": "location",
-          "columnsFrom": [
-            "location_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["location_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
         "stock_product_id_location_id_pk": {
-          "columns": [
-            "product_id",
-            "location_id"
-          ],
+          "columns": ["product_id", "location_id"],
           "name": "stock_product_id_location_id_pk"
         }
       },
