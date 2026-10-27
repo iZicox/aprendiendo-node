@@ -98,5 +98,6 @@ export const stock = sqliteTable(
   (table) => [
     primaryKey({ columns: [table.productId, table.locationId] }),
     check('stock_quantity_non_negative', sql`${table.quantity} >= 0`),
+    index('idx_stock_location').on(table.locationId),
   ],
 )

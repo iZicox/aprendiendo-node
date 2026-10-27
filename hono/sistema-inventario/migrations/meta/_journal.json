@@ -15,6 +15,13 @@
       "when": 1793013864239,
       "tag": "0001_breezy_molten_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1793097348141,
+      "tag": "0002_unusual_ego",
+      "breakpoints": true
     }
   ]
 }

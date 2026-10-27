@@ -1,0 +1,1 @@
+CREATE INDEX `idx_stock_location` ON `stock` (`location_id`);

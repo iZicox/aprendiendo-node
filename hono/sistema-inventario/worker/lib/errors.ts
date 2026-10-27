@@ -2,9 +2,9 @@ import type { ErrorHandler } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 
 // Errores de negocio: los lanzan los servicios, sin saber nada de HTTP.
-export class NotFoundError extends Error { }
-export class ConflictError extends Error { }
-export class IllegalMovement extends Error { }
+export class NotFoundError extends Error {}
+export class ConflictError extends Error {}
+export class IllegalMovement extends Error {}
 
 // Traduce cada error a una respuesta HTTP con formato JSON uniforme.
 export const errorHandler: ErrorHandler = (err, c) => {
