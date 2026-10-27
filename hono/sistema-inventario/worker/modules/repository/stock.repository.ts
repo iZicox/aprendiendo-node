@@ -56,14 +56,15 @@ export class StockRepository {
       .select({
         sku: product.sku,
         ubicacionCode: location.code,
-        total: stock.quantity,
+        total: sql<number>`coalesce(${stock.quantity}, 0)`,
       })
-      .from(stock)
-      .innerJoin(product, eq(product.id, stock.productId))
-      .innerJoin(location, eq(location.id, stock.locationId))
-      .where(
-        and(eq(stock.productId, productId), eq(stock.locationId, locationId)),
+      .from(product)
+      .innerJoin(location, eq(location.id, locationId))
+      .leftJoin(
+        stock,
+        and(eq(stock.productId, product.id), eq(stock.locationId, location.id)),
       )
+      .where(eq(product.id, productId))
       .limit(1)
     return row ?? null
   }
@@ -73,7 +74,7 @@ export class StockRepository {
     if (!opts.includeZero) {
       const where = gt(stock.quantity, 0)
 
-      const [items, [{ total }]] = await Promise.all([
+      const [items, [{ total }]] = await this.db.batch([
         this.db
           .select({
             sku: product.sku,
@@ -93,7 +94,7 @@ export class StockRepository {
       return toPage(items, total, opts)
     }
 
-    const [items, [{ total }]] = await Promise.all([
+    const [items, [{ total }]] = await this.db.batch([
       this.db
         .select({
           sku: product.sku,
@@ -129,7 +130,7 @@ export class StockRepository {
       eq(stock.locationId, locationId),
     )
 
-    const [items, [{ total }]] = await Promise.all([
+    const [items, [{ total }]] = await this.db.batch([
       this.db
         .select({
           sku: product.sku,
@@ -156,7 +157,7 @@ export class StockRepository {
 
   // 7. GET /stock/by-product?page&pageSize
   async getTotalsByProduct(opts: PaginationQuery) {
-    const [items, [{ total }]] = await Promise.all([
+    const [items, [{ total }]] = await this.db.batch([
       this.db
         .select({
           id: product.id,
@@ -193,7 +194,7 @@ export class StockRepository {
   async getOutOfStock(opts: PaginationQuery) {
     const sumQty = sql<number>`coalesce(sum(${stock.quantity}), 0)`
 
-    const [items, [{ total }]] = await Promise.all([
+    const [items, [{ total }]] = await this.db.batch([
       this.db
         .select({ id: product.id, sku: product.sku, total: sumQty })
         .from(product)
@@ -234,24 +235,50 @@ export class StockRepository {
 
   // 11. GET /admin/stock/audit
   async getAudit() {
-    const calculated = sql<number>`coalesce(sum(${movement.quantity} * ${movementType.sign}), 0)`
-    return this.db
+    const pairs = this.db
       .select({
         productId: stock.productId,
         locationId: stock.locationId,
-        stockActual: stock.quantity,
-        stockCalculado: calculated,
       })
       .from(stock)
+      .union(
+        this.db
+          .select({
+            productId: movement.productId,
+            locationId: movement.locationId,
+          })
+          .from(movement),
+      )
+      .as('pairs')
+
+    const calculated = sql<number>`coalesce(sum(${movement.quantity} * ${movementType.sign}), 0)`
+    const actual = sql<number>`coalesce(${stock.quantity}, 0)`
+
+    return this.db
+      .select({
+        productId: pairs.productId,
+        locationId: pairs.locationId,
+        stockActual: actual,
+        stockCalculado: calculated,
+      })
+      .from(pairs)
+      .leftJoin(
+        stock,
+        and(
+          eq(stock.productId, pairs.productId),
+          eq(stock.locationId, pairs.locationId),
+        ),
+      )
       .leftJoin(
         movement,
         and(
-          eq(movement.productId, stock.productId),
-          eq(movement.locationId, stock.locationId),
+          eq(movement.productId, pairs.productId),
+          eq(movement.locationId, pairs.locationId),
         ),
       )
       .leftJoin(movementType, eq(movementType.code, movement.movementTypeCode))
-      .groupBy(stock.productId, stock.locationId, stock.quantity)
-      .having(sql`${stock.quantity} <> ${calculated}`)
+      .groupBy(pairs.productId, pairs.locationId, stock.quantity)
+      .having(sql`${actual} <> ${calculated}`)
+      .orderBy(asc(pairs.productId), asc(pairs.locationId))
   }
 }

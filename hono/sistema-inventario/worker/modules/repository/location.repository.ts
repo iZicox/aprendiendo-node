@@ -11,7 +11,7 @@ export class LocationRepository {
   }
 
   findAll(): Promise<SelectLocation[]> {
-    return this.db.select().from(location)
+    return this.db.select().from(location).orderBy(location.id)
   }
 
   async findById(id: number): Promise<SelectLocation> {

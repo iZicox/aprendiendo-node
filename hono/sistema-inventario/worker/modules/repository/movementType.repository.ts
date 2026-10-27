@@ -14,7 +14,7 @@ export class MovementTypeRepository {
   }
 
   findAll(): Promise<MovementTypeSelect[]> {
-    return this.db.select().from(movementType)
+    return this.db.select().from(movementType).orderBy(movementType.code)
   }
 
   async findByCode(code: string): Promise<MovementTypeSelect> {
