@@ -5,6 +5,7 @@ import {
   getById,
   getBySku,
   remove,
+  update,
 } from '../controller/products.controller'
 
 export const productsRoutes = new Hono<{ Bindings: Env }>()
@@ -12,4 +13,5 @@ export const productsRoutes = new Hono<{ Bindings: Env }>()
   .get('/:id', ...getById)
   .get('/sku/:sku', ...getBySku)
   .post('/', ...create)
+  .put('/:id', ...update)
   .delete('/:id', ...remove)

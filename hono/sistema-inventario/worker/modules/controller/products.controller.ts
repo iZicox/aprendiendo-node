@@ -2,6 +2,7 @@ import { drizzle } from 'drizzle-orm/d1'
 import { createFactory } from 'hono/factory'
 import { ProductsRepository } from '../repository/products.repository'
 import { ProductsService } from '../service/products.service'
+import { zValidator } from '@hono/zod-validator'
 import {
   createProductSchema,
   idParamSchema,
@@ -9,7 +10,6 @@ import {
   skuParamSchema,
   updateProductSchema,
 } from '../validators'
-import { zValidator } from '@hono/zod-validator'
 
 const factory = createFactory<{ Bindings: Env }>()
 

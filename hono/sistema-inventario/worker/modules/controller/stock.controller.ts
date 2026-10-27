@@ -1,5 +1,6 @@
 import { drizzle } from 'drizzle-orm/d1'
 import { createFactory } from 'hono/factory'
+import { LocationRepository } from '../repository/location.repository'
 import { StockRepository } from '../repository/stock.repository'
 import { StockService } from '../service/stock.service'
 import { zValidator } from '@hono/zod-validator'
@@ -17,7 +18,8 @@ const factory = createFactory<{ Bindings: Env }>()
 function makeService(d1: D1Database): StockService {
   const db = drizzle(d1)
   const repo = new StockRepository(db)
-  return new StockService(repo)
+  const locationRepo = new LocationRepository(db)
+  return new StockService(repo, locationRepo)
 }
 
 export const getTotal = factory.createHandlers(async (c) => {

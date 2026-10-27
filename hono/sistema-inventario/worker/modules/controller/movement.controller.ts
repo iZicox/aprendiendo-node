@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/d1'
 import { createFactory } from 'hono/factory'
 import { MovementRepository } from '../repository/movement.repository'
+import { MovementTypeRepository } from '../repository/movementType.repository'
 import { MovementService } from '../service/movement.service'
 import { zValidator } from '@hono/zod-validator'
 import {
@@ -14,7 +15,8 @@ const factory = createFactory<{ Bindings: Env }>()
 function makeService(d1: D1Database): MovementService {
   const db = drizzle(d1)
   const repo = new MovementRepository(db)
-  return new MovementService(repo)
+  const movementTypeRepo = new MovementTypeRepository(db)
+  return new MovementService(repo, movementTypeRepo)
 }
 
 export const getAll = factory.createHandlers(async (c) => {
