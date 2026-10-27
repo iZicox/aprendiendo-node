@@ -48,3 +48,12 @@ export type MovementSign = 1 | -1
 
 // para el body de post
 export type CreateMovementInput = z.infer<typeof createMovementSchema>
+
+// Stock
+export type StockRow = {
+  sku: string
+  ubicacionCode: string
+  total: number
+}
+
+export type PageOpts = PaginationQuery & { includeZero?: boolean }
