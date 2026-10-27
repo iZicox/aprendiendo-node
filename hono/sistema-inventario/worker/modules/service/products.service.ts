@@ -1,6 +1,6 @@
 // worker/modules/products/products.service.ts
 // Reglas de negocio. No conoce Hono ni SQL.
-import {
+import type {
   CreateProductInput,
   NewProduct,
   Page,

@@ -1,5 +1,6 @@
 import { NotFoundError } from '../../lib/errors'
 import { MovementTypeRepository } from '../repository/movementType.repository'
+import type { MovementTypeSelect } from '../repository/movementType.repository'
 
 export class MovementTypeService {
   private repo: MovementTypeRepository
@@ -8,15 +9,13 @@ export class MovementTypeService {
     this.repo = repo
   }
 
-  getAll() {
-    const data = this.repo.findAll()
-    if (!data) throw new NotFoundError('tipos de movimientos no encontrados')
-    return data
+  async getAll(): Promise<MovementTypeSelect[]> {
+    return this.repo.findAll()
   }
 
-  getById(code: string) {
-    const found = this.repo.findByCode(code)
-    if (!found) throw new NotFoundError('no encontrado')
+  async getById(code: string): Promise<MovementTypeSelect> {
+    const found = await this.repo.findByCode(code)
+    if (!found) throw new NotFoundError('Tipo de movimiento no encontrado')
     return found
   }
 }

@@ -1,4 +1,4 @@
-import {
+import type {
   Page,
   PageOpts,
   PaginationQuery,
@@ -9,13 +9,21 @@ import {
   StockRow,
 } from '../../db/types'
 import { NotFoundError } from '../../lib/errors'
+import { LocationRepository } from '../repository/location.repository'
 import { StockRepository } from '../repository/stock.repository'
 
 export class StockService {
   private repo: StockRepository
+  private locationRepo: LocationRepository
 
-  constructor(repo: StockRepository) {
+  constructor(repo: StockRepository, locationRepo: LocationRepository) {
     this.repo = repo
+    this.locationRepo = locationRepo
+  }
+
+  private async ensureLocationExists(locationId: number): Promise<void> {
+    const location = await this.locationRepo.findById(locationId)
+    if (!location) throw new NotFoundError('Ubicacion no encontrada')
   }
 
   async getTotal(): Promise<number> {
@@ -29,6 +37,7 @@ export class StockService {
   }
 
   async getLocationTotal(locationId: number): Promise<number> {
+    await this.ensureLocationExists(locationId)
     return this.repo.getLocationTotal(locationId)
   }
 
@@ -36,6 +45,8 @@ export class StockService {
     productId: number,
     locationId: number,
   ): Promise<StockRow> {
+    await this.ensureLocationExists(locationId)
+
     const row = await this.repo.getProductInLocation(productId, locationId)
     if (!row) {
       throw new NotFoundError(
@@ -53,6 +64,7 @@ export class StockService {
     locationId: number,
     opts: PageOpts,
   ): Promise<Page<StockRow>> {
+    await this.ensureLocationExists(locationId)
     return this.repo.getLocationSummary(locationId, opts)
   }
 
