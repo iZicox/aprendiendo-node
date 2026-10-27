@@ -11,9 +11,19 @@ import { z } from 'zod'
 export const idParamSchema = z.object({
   id: z.coerce.number().int().positive(),
 })
+const CODE_PATTERN = /^[A-Z0-9._-]+$/
+const CODE_MESSAGE =
+  'Solo se permiten letras, números, punto, guion y guion bajo'
+
 // universal string code schema upper case
 export const codeParamSchema = z.object({
-  code: z.string().trim().min(1).toUpperCase(),
+  code: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .min(1)
+    .max(50)
+    .regex(CODE_PATTERN, CODE_MESSAGE),
 })
 
 /**
@@ -27,24 +37,40 @@ export const paginationQuerySchema = z.object({
 /**
  * Validadores para Productos
  */
+// El SKU se normaliza: sin espacios en los extremos y en mayúsculas.
+const skuSchema = z
+  .string()
+  .trim()
+  .toUpperCase()
+  .min(1, 'El SKU es obligatorio')
+  .max(50)
+  .regex(CODE_PATTERN, CODE_MESSAGE)
+
 // Crear
 export const createProductSchema = z.object({
-  // El SKU se normaliza: sin espacios en los extremos y en mayúsculas.
-  sku: z.string().trim().min(1, 'El SKU es obligatorio').max(50).toUpperCase(),
+  sku: skuSchema,
 })
 
 // actualizar
 export const updateProductSchema = createProductSchema
 
 // sku product
-export const skuParamSchema = createProductSchema
+export const skuParamSchema = z.object({
+  sku: skuSchema,
+})
 
 /**
  * Validadores para Location
  */
 
 export const createLocationSchema = z.object({
-  code: z.string().min(1).max(50).toUpperCase(),
+  code: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .min(1)
+    .max(50)
+    .regex(CODE_PATTERN, CODE_MESSAGE),
 })
 
 /**
@@ -59,7 +85,13 @@ export const locationProductParamSchema = z.object({
 export const createMovementSchema = z.object({
   productId: z.coerce.number().int().positive(),
   locationId: z.coerce.number().int().positive(),
-  movementTypeCode: z.string().trim().min(1).toUpperCase(),
+  movementTypeCode: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .min(1)
+    .max(50)
+    .regex(CODE_PATTERN, CODE_MESSAGE),
   quantity: z.coerce.number().int().positive(),
   transferId: z.string().trim().min(1).optional(),
   note: z.string().trim().min(1).optional(),

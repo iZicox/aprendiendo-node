@@ -323,42 +323,43 @@ insert into movement (
    location_id,
    movementtypecode,
    quantity,
+   transfer_id,
    note,
    created_at
 ) values
    -- TRF-001: 5 portátiles de WAREHOUSE a WAREHOUSE_2.
-   (29, 1, 1, 'TRANSFER_OUT', 5,
+   (29, 1, 1, 'TRANSFER_OUT', 5, 'TRF-001',
     'TRF-001 | WAREHOUSE -> WAREHOUSE_2',
     '2026-10-21 09:00:00'),
 
-   (30, 1, 2, 'TRANSFER_IN', 5,
+   (30, 1, 2, 'TRANSFER_IN', 5, 'TRF-001',
     'TRF-001 | WAREHOUSE -> WAREHOUSE_2',
     '2026-10-21 09:00:00'),
 
    -- TRF-002: 20 ratones de WAREHOUSE a WAREHOUSE_2.
-   (31, 2, 1, 'TRANSFER_OUT', 20,
+   (31, 2, 1, 'TRANSFER_OUT', 20, 'TRF-002',
     'TRF-002 | WAREHOUSE -> WAREHOUSE_2',
     '2026-10-21 10:00:00'),
 
-   (32, 2, 2, 'TRANSFER_IN', 20,
+   (32, 2, 2, 'TRANSFER_IN', 20, 'TRF-002',
     'TRF-002 | WAREHOUSE -> WAREHOUSE_2',
     '2026-10-21 10:00:00'),
 
    -- TRF-003: 30 cables HDMI de WAREHOUSE a WAREHOUSE_2.
-   (33, 5, 1, 'TRANSFER_OUT', 30,
+   (33, 5, 1, 'TRANSFER_OUT', 30, 'TRF-003',
     'TRF-003 | WAREHOUSE -> WAREHOUSE_2',
     '2026-10-22 09:00:00'),
 
-   (34, 5, 2, 'TRANSFER_IN', 30,
+   (34, 5, 2, 'TRANSFER_IN', 30, 'TRF-003',
     'TRF-003 | WAREHOUSE -> WAREHOUSE_2',
     '2026-10-22 09:00:00'),
 
    -- TRF-004: regreso de 5 ratones a WAREHOUSE.
-   (35, 2, 2, 'TRANSFER_OUT', 5,
+   (35, 2, 2, 'TRANSFER_OUT', 5, 'TRF-004',
     'TRF-004 | WAREHOUSE_2 -> WAREHOUSE',
     '2026-10-23 11:00:00'),
 
-   (36, 2, 1, 'TRANSFER_IN', 5,
+   (36, 2, 1, 'TRANSFER_IN', 5, 'TRF-004',
     'TRF-004 | WAREHOUSE_2 -> WAREHOUSE',
     '2026-10-23 11:00:00');
 
