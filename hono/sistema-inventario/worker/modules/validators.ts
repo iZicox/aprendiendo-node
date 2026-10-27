@@ -65,3 +65,22 @@ export const createMovementSchema = z.object({
   note: z.string().trim().min(1).optional(),
   sign: z.union([z.literal(1), z.literal(-1)]),
 })
+
+/**
+ * Validadores para Stock
+ */
+
+export const productIdParamSchema = z.object({
+  productId: z.coerce.number().int().positive(),
+})
+
+export const locationIdParamSchema = z.object({
+  locationId: z.coerce.number().int().positive(),
+})
+
+export const stockPaginationQuerySchema = paginationQuerySchema.extend({
+  includeZero: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
+})
