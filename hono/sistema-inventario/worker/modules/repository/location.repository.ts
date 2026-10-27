@@ -1,7 +1,7 @@
 import { DrizzleD1Database } from 'drizzle-orm/d1'
 import { location } from '../../db/schema'
 import { eq } from 'drizzle-orm'
-import { InsertLocation, SelectLocation } from '../../db/types'
+import type { InsertLocation, SelectLocation } from '../../db/types'
 
 export class LocationRepository {
   private db: DrizzleD1Database

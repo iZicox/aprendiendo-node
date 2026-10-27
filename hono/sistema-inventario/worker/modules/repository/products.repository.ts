@@ -2,7 +2,7 @@ import { count, eq, sql } from 'drizzle-orm'
 import type { DrizzleD1Database } from 'drizzle-orm/d1'
 import { movement, product, stock } from '../../db/schema'
 import { toOffset } from '../../lib/pagination'
-import {
+import type {
   FindAllProducts,
   NewProduct,
   PaginationQuery,

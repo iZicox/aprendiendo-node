@@ -7,7 +7,7 @@ import {
   stock,
 } from '../../db/schema'
 import { DrizzleD1Database } from 'drizzle-orm/d1'
-import { Page, PageOpts, PaginationQuery, StockRow } from '../../db/types'
+import type { Page, PageOpts, PaginationQuery, StockRow } from '../../db/types'
 import { toOffset, toPage } from '../../lib/pagination'
 
 export class StockRepository {
@@ -70,23 +70,49 @@ export class StockRepository {
 
   // 5. GET /stock?page&pageSize&includeZero
   async getSummary(opts: PageOpts): Promise<Page<StockRow>> {
-    const where = opts.includeZero ? undefined : gt(stock.quantity, 0)
+    if (!opts.includeZero) {
+      const where = gt(stock.quantity, 0)
+
+      const [items, [{ total }]] = await Promise.all([
+        this.db
+          .select({
+            sku: product.sku,
+            ubicacionCode: location.code,
+            total: stock.quantity,
+          })
+          .from(stock)
+          .innerJoin(product, eq(product.id, stock.productId))
+          .innerJoin(location, eq(location.id, stock.locationId))
+          .where(where)
+          .orderBy(asc(location.code), asc(product.sku))
+          .limit(opts.pageSize)
+          .offset(toOffset(opts)),
+        this.db.select({ total: count() }).from(stock).where(where),
+      ])
+
+      return toPage(items, total, opts)
+    }
 
     const [items, [{ total }]] = await Promise.all([
       this.db
         .select({
           sku: product.sku,
           ubicacionCode: location.code,
-          total: stock.quantity,
+          total: sql<number>`coalesce(${stock.quantity}, 0)`,
         })
-        .from(stock)
-        .innerJoin(product, eq(product.id, stock.productId))
-        .innerJoin(location, eq(location.id, stock.locationId))
-        .where(where)
+        .from(product)
+        .crossJoin(location)
+        .leftJoin(
+          stock,
+          and(
+            eq(stock.productId, product.id),
+            eq(stock.locationId, location.id),
+          ),
+        )
         .orderBy(asc(location.code), asc(product.sku))
         .limit(opts.pageSize)
         .offset(toOffset(opts)),
-      this.db.select({ total: count() }).from(stock).where(where),
+      this.db.select({ total: count() }).from(product).crossJoin(location),
     ])
 
     return toPage(items, total, opts)
@@ -97,9 +123,10 @@ export class StockRepository {
     locationId: number,
     opts: PageOpts,
   ): Promise<Page<StockRow>> {
-    const where = and(
+    const where = opts.includeZero ? undefined : gt(stock.quantity, 0)
+    const stockJoin = and(
+      eq(stock.productId, product.id),
       eq(stock.locationId, locationId),
-      opts.includeZero ? undefined : gt(stock.quantity, 0),
     )
 
     const [items, [{ total }]] = await Promise.all([
@@ -107,16 +134,21 @@ export class StockRepository {
         .select({
           sku: product.sku,
           ubicacionCode: location.code,
-          total: stock.quantity,
+          total: sql<number>`coalesce(${stock.quantity}, 0)`,
         })
-        .from(stock)
-        .innerJoin(product, eq(product.id, stock.productId))
-        .innerJoin(location, eq(location.id, stock.locationId))
+        .from(product)
+        .innerJoin(location, eq(location.id, locationId))
+        .leftJoin(stock, stockJoin)
         .where(where)
         .orderBy(asc(product.sku))
         .limit(opts.pageSize)
         .offset(toOffset(opts)),
-      this.db.select({ total: count() }).from(stock).where(where),
+      this.db
+        .select({ total: count() })
+        .from(product)
+        .innerJoin(location, eq(location.id, locationId))
+        .leftJoin(stock, stockJoin)
+        .where(where),
     ])
 
     return toPage(items, total, opts)
@@ -191,7 +223,7 @@ export class StockRepository {
         total: sql<number>`coalesce(${stock.quantity}, 0)`,
       })
       .from(product)
-      .innerJoin(location, sql`1 = 1`)
+      .crossJoin(location)
       .leftJoin(
         stock,
         and(eq(stock.productId, product.id), eq(stock.locationId, location.id)),

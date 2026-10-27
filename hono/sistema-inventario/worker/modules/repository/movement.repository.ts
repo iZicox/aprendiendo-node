@@ -1,7 +1,7 @@
 import { DrizzleD1Database } from 'drizzle-orm/d1'
 import { movement, stock } from '../../db/schema'
 import { and, eq, sql } from 'drizzle-orm'
-import { MovementSign, NewMovement, SelectMovement } from '../../db/types'
+import type { MovementSign, NewMovement, SelectMovement } from '../../db/types'
 
 export class MovementRepository {
   private db: DrizzleD1Database

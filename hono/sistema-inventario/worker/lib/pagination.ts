@@ -1,4 +1,4 @@
-import { Page, PaginationQuery } from '../db/types'
+import type { Page, PaginationQuery } from '../db/types'
 
 export const toOffset = ({ page, pageSize }: PaginationQuery): number =>
   (page - 1) * pageSize
