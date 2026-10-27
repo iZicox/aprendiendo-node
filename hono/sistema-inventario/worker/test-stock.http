@@ -1,0 +1,58 @@
+// STOCK
+@url = http://localhost:5173/api/stock
+@adminUrl = http://localhost:5173/api/admin/stock
+
+// listar resumen (solo stock > 0)
+GET {{url}}
+###
+
+// listar resumen incluyendo productos con stock 0
+GET {{url}}?includeZero=true
+###
+
+// total general
+GET {{url}}/total
+###
+
+// total por producto
+@productId = 1
+GET {{url}}/products/{{productId}}/total
+###
+
+// total por ubicacion
+@locationId = 1
+GET {{url}}/locations/{{locationId}}/total
+###
+
+// stock de un producto en una ubicacion
+GET {{url}}/locations/{{locationId}}/products/{{productId}}
+###
+
+// resumen de una ubicacion (solo stock > 0)
+GET {{url}}/locations/{{locationId}}
+###
+
+// resumen de una ubicacion incluyendo productos con stock 0
+GET {{url}}/locations/{{locationId}}?includeZero=true
+###
+
+// totales por producto
+GET {{url}}/by-product
+###
+
+// totales por ubicacion
+GET {{url}}/by-location
+###
+
+// productos sin stock
+GET {{url}}/out-of-stock
+###
+
+// stock de un SKU en todas las ubicaciones
+@sku = LAP-ACER-15
+GET {{url}}/sku/{{sku}}
+###
+
+// auditoria de stock (admin)
+GET {{adminUrl}}/audit
+###

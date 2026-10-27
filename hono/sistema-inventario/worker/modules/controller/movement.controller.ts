@@ -8,6 +8,7 @@ import {
   createMovementSchema,
   idParamSchema,
   locationProductParamSchema,
+  paginationQuerySchema,
 } from '../validators'
 
 const factory = createFactory<{ Bindings: Env }>()
@@ -19,9 +20,13 @@ function makeService(d1: D1Database): MovementService {
   return new MovementService(repo, movementTypeRepo)
 }
 
-export const getAll = factory.createHandlers(async (c) => {
-  return c.json(await makeService(c.env.DB).getAll())
-})
+export const getAll = factory.createHandlers(
+  zValidator('query', paginationQuerySchema),
+  async (c) => {
+    const query = c.req.valid('query')
+    return c.json(await makeService(c.env.DB).getAll(query))
+  },
+)
 
 export const getById = factory.createHandlers(
   zValidator('param', idParamSchema),
@@ -33,28 +38,35 @@ export const getById = factory.createHandlers(
 
 export const getByProductId = factory.createHandlers(
   zValidator('param', idParamSchema),
+  zValidator('query', paginationQuerySchema),
   async (c) => {
     const { id } = c.req.valid('param')
-    return c.json(await makeService(c.env.DB).getByProductId(id))
+    const query = c.req.valid('query')
+    return c.json(await makeService(c.env.DB).getByProductId(id, query))
   },
 )
 
 export const getByLocationId = factory.createHandlers(
   zValidator('param', idParamSchema),
+  zValidator('query', paginationQuerySchema),
   async (c) => {
     const { id } = c.req.valid('param')
-    return c.json(await makeService(c.env.DB).getByLocationId(id))
+    const query = c.req.valid('query')
+    return c.json(await makeService(c.env.DB).getByLocationId(id, query))
   },
 )
 
 export const getByLocationIdAndProductId = factory.createHandlers(
   zValidator('param', locationProductParamSchema),
+  zValidator('query', paginationQuerySchema),
   async (c) => {
     const { locationId, productId } = c.req.valid('param')
+    const query = c.req.valid('query')
     return c.json(
       await makeService(c.env.DB).getByLocationIdAndProductId(
         locationId,
         productId,
+        query,
       ),
     )
   },

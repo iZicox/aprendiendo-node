@@ -1,7 +1,14 @@
-import { DrizzleD1Database } from 'drizzle-orm/d1'
+import type { DrizzleD1Database } from 'drizzle-orm/d1'
 import { movement, stock } from '../../db/schema'
-import { and, eq, sql } from 'drizzle-orm'
-import type { MovementSign, NewMovement, SelectMovement } from '../../db/types'
+import { and, count, eq, sql } from 'drizzle-orm'
+import { toOffset } from '../../lib/pagination'
+import type {
+  FindAllMovements,
+  MovementSign,
+  NewMovement,
+  PaginationQuery,
+  SelectMovement,
+} from '../../db/types'
 
 export class MovementRepository {
   private db: DrizzleD1Database
@@ -10,12 +17,17 @@ export class MovementRepository {
     this.db = db
   }
 
-  async findAll(): Promise<SelectMovement[]> {
-    const rows = await this.db
-      .select()
-      .from(movement)
-      .orderBy(movement.createdAt)
-    return rows
+  async findAll(query: PaginationQuery): Promise<FindAllMovements> {
+    const [items, [{ total }]] = await this.db.batch([
+      this.db
+        .select()
+        .from(movement)
+        .orderBy(movement.createdAt, movement.id)
+        .limit(query.pageSize)
+        .offset(toOffset(query)),
+      this.db.select({ total: count() }).from(movement),
+    ])
+    return { items, total }
   }
 
   async findById(id: number): Promise<SelectMovement> {
@@ -27,38 +39,62 @@ export class MovementRepository {
     return row
   }
 
-  async findByProductId(id: number): Promise<SelectMovement[]> {
-    const rows = await this.db
-      .select()
-      .from(movement)
-      .where(eq(movement.productId, id))
-      .orderBy(movement.createdAt)
-    return rows
+  async findByProductId(
+    id: number,
+    query: PaginationQuery,
+  ): Promise<FindAllMovements> {
+    const where = eq(movement.productId, id)
+    const [items, [{ total }]] = await this.db.batch([
+      this.db
+        .select()
+        .from(movement)
+        .where(where)
+        .orderBy(movement.createdAt, movement.id)
+        .limit(query.pageSize)
+        .offset(toOffset(query)),
+      this.db.select({ total: count() }).from(movement).where(where),
+    ])
+    return { items, total }
   }
 
-  async findByLocationId(id: number): Promise<SelectMovement[]> {
-    const rows = await this.db
-      .select()
-      .from(movement)
-      .where(eq(movement.locationId, id))
-      .orderBy(movement.createdAt)
-    return rows
+  async findByLocationId(
+    id: number,
+    query: PaginationQuery,
+  ): Promise<FindAllMovements> {
+    const where = eq(movement.locationId, id)
+    const [items, [{ total }]] = await this.db.batch([
+      this.db
+        .select()
+        .from(movement)
+        .where(where)
+        .orderBy(movement.createdAt, movement.id)
+        .limit(query.pageSize)
+        .offset(toOffset(query)),
+      this.db.select({ total: count() }).from(movement).where(where),
+    ])
+    return { items, total }
   }
 
   async findByLocationIdAndProductId(
     locationId: number,
     productId: number,
-  ): Promise<SelectMovement[]> {
-    const rows = await this.db
-      .select()
-      .from(movement)
-      .where(
-        and(
-          eq(movement.locationId, locationId),
-          eq(movement.productId, productId),
-        ),
-      )
-    return rows
+    query: PaginationQuery,
+  ): Promise<FindAllMovements> {
+    const where = and(
+      eq(movement.locationId, locationId),
+      eq(movement.productId, productId),
+    )
+    const [items, [{ total }]] = await this.db.batch([
+      this.db
+        .select()
+        .from(movement)
+        .where(where)
+        .orderBy(movement.createdAt, movement.id)
+        .limit(query.pageSize)
+        .offset(toOffset(query)),
+      this.db.select({ total: count() }).from(movement).where(where),
+    ])
+    return { items, total }
   }
 
   async insert(data: NewMovement, sign: MovementSign): Promise<SelectMovement> {

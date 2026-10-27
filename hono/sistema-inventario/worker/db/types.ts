@@ -46,6 +46,11 @@ export type NewMovement = typeof movement.$inferInsert
 export type SelectMovement = typeof movement.$inferSelect
 export type MovementSign = 1 | -1
 
+export type FindAllMovements = {
+  items: SelectMovement[]
+  total: number
+}
+
 // para el body de post
 export type CreateMovementInput = z.infer<typeof createMovementSchema>
 

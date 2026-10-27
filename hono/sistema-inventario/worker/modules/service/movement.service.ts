@@ -1,4 +1,10 @@
-import type { MovementSign, NewMovement, SelectMovement } from '../../db/types'
+import type {
+  MovementSign,
+  NewMovement,
+  Page,
+  PaginationQuery,
+  SelectMovement,
+} from '../../db/types'
 import {
   isForeignKeyViolation,
   isStockNonNegativeViolation,
@@ -9,6 +15,7 @@ import {
   IllegalMovement,
   NotFoundError,
 } from '../../lib/errors'
+import { toPage } from '../../lib/pagination'
 import { MovementRepository } from '../repository/movement.repository'
 import { MovementTypeRepository } from '../repository/movementType.repository'
 
@@ -24,8 +31,9 @@ export class MovementService {
     this.movementTypeRepo = movementTypeRepo
   }
 
-  async getAll(): Promise<SelectMovement[]> {
-    return this.repo.findAll()
+  async getAll(query: PaginationQuery): Promise<Page<SelectMovement>> {
+    const { items, total } = await this.repo.findAll(query)
+    return toPage(items, total, query)
   }
 
   async getById(id: number): Promise<SelectMovement> {
@@ -34,28 +42,36 @@ export class MovementService {
     return row
   }
 
-  async getByProductId(id: number): Promise<SelectMovement[]> {
-    const rows = await this.repo.findByProductId(id)
-    if (rows.length === 0) throw new NotFoundError('Movimientos no encontrados')
-    return rows
+  async getByProductId(
+    id: number,
+    query: PaginationQuery,
+  ): Promise<Page<SelectMovement>> {
+    const { items, total } = await this.repo.findByProductId(id, query)
+    if (total === 0) throw new NotFoundError('Movimientos no encontrados')
+    return toPage(items, total, query)
   }
 
-  async getByLocationId(id: number): Promise<SelectMovement[]> {
-    const rows = await this.repo.findByLocationId(id)
-    if (rows.length === 0) throw new NotFoundError('Movimientos no encontrados')
-    return rows
+  async getByLocationId(
+    id: number,
+    query: PaginationQuery,
+  ): Promise<Page<SelectMovement>> {
+    const { items, total } = await this.repo.findByLocationId(id, query)
+    if (total === 0) throw new NotFoundError('Movimientos no encontrados')
+    return toPage(items, total, query)
   }
 
   async getByLocationIdAndProductId(
     locationId: number,
     productId: number,
-  ): Promise<SelectMovement[]> {
-    const rows = await this.repo.findByLocationIdAndProductId(
+    query: PaginationQuery,
+  ): Promise<Page<SelectMovement>> {
+    const { items, total } = await this.repo.findByLocationIdAndProductId(
       locationId,
       productId,
+      query,
     )
-    if (rows.length === 0) throw new NotFoundError('Movimientos no encontrados')
-    return rows
+    if (total === 0) throw new NotFoundError('Movimientos no encontrados')
+    return toPage(items, total, query)
   }
 
   async insert(
