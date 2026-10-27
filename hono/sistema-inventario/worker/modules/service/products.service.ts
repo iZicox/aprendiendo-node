@@ -8,6 +8,7 @@ import type {
   Product,
   UpdateProductInput,
 } from '../../db/types'
+import { isForeignKeyViolation, isUniqueViolation } from '../../lib/db-erros'
 import { ConflictError, NotFoundError } from '../../lib/errors'
 import { toPage } from '../../lib/pagination'
 import type { ProductsRepository } from '../repository/products.repository'
@@ -40,7 +41,15 @@ export class ProductsService {
     if (await this.repo.findBySku(input.sku)) {
       throw new ConflictError('Ya existe un producto con ese SKU')
     }
-    return this.repo.create(input)
+
+    try {
+      return await this.repo.create(input)
+    } catch (e) {
+      if (isUniqueViolation(e)) {
+        throw new ConflictError('Ya existe un producto con ese SKU')
+      }
+      throw e
+    }
   }
 
   async update(id: number, input: UpdateProductInput): Promise<Product> {
@@ -50,7 +59,15 @@ export class ProductsService {
     if (sameSku && sameSku.id !== id) {
       throw new ConflictError('Ya existe un producto con ese SKU')
     }
-    return this.repo.update(id, input)
+
+    try {
+      return await this.repo.update(id, input)
+    } catch (e) {
+      if (isUniqueViolation(e)) {
+        throw new ConflictError('Ya existe un producto con ese SKU')
+      }
+      throw e
+    }
   }
 
   async remove(id: number): Promise<void> {
@@ -63,6 +80,17 @@ export class ProductsService {
         'No se puede eliminar un producto con movimientos',
       )
     }
-    await this.repo.delete(id)
+
+    try {
+      const deleted = await this.repo.delete(id)
+      if (!deleted) throw new NotFoundError('Producto no encontrado')
+    } catch (e) {
+      if (isForeignKeyViolation(e)) {
+        throw new ConflictError(
+          'No se puede eliminar un producto con movimientos',
+        )
+      }
+      throw e
+    }
   }
 }

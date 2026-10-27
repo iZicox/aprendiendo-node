@@ -48,11 +48,7 @@ export class StockService {
     await this.ensureLocationExists(locationId)
 
     const row = await this.repo.getProductInLocation(productId, locationId)
-    if (!row) {
-      throw new NotFoundError(
-        'Stock no encontrado para ese producto en esa ubicación',
-      )
-    }
+    if (!row) throw new NotFoundError('Producto no encontrado')
     return row
   }
 
