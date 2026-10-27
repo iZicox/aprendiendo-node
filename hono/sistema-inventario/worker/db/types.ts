@@ -56,4 +56,26 @@ export type StockRow = {
   total: number
 }
 
+export type StockProductTotal = {
+  sku: string
+  total: number
+}
+
+export type StockProductTotalWithId = StockProductTotal & {
+  id: number
+}
+
+export type StockLocationTotal = {
+  id: number
+  ubicacionCode: string
+  total: number
+}
+
+export type StockAuditRow = {
+  productId: number
+  locationId: number
+  stockActual: number
+  stockCalculado: number
+}
+
 export type PageOpts = PaginationQuery & { includeZero?: boolean }
