@@ -10,6 +10,7 @@ import {
   skuParamSchema,
   updateProductSchema,
 } from '../validators'
+import { validationHook } from './validation'
 
 const factory = createFactory<{ Bindings: Env }>()
 
@@ -20,14 +21,14 @@ function makeService(d1: D1Database): ProductsService {
 }
 
 export const getAll = factory.createHandlers(
-  zValidator('query', paginationQuerySchema),
+  zValidator('query', paginationQuerySchema, validationHook),
   async (c) => {
     return c.json(await makeService(c.env.DB).getAll(c.req.valid('query')))
   },
 )
 
 export const getById = factory.createHandlers(
-  zValidator('param', idParamSchema),
+  zValidator('param', idParamSchema, validationHook),
   async (c) => {
     const { id } = c.req.valid('param')
     return c.json(await makeService(c.env.DB).getById(id))
@@ -35,7 +36,7 @@ export const getById = factory.createHandlers(
 )
 
 export const getBySku = factory.createHandlers(
-  zValidator('param', skuParamSchema),
+  zValidator('param', skuParamSchema, validationHook),
   async (c) => {
     const { sku } = c.req.valid('param')
     return c.json(await makeService(c.env.DB).getBySku(sku))
@@ -43,7 +44,7 @@ export const getBySku = factory.createHandlers(
 )
 
 export const create = factory.createHandlers(
-  zValidator('json', createProductSchema),
+  zValidator('json', createProductSchema, validationHook),
   async (c) => {
     const body = c.req.valid('json')
     return c.json(await makeService(c.env.DB).create(body))
@@ -51,7 +52,7 @@ export const create = factory.createHandlers(
 )
 
 export const remove = factory.createHandlers(
-  zValidator('param', idParamSchema),
+  zValidator('param', idParamSchema, validationHook),
   async (c) => {
     const { id } = c.req.valid('param')
     await makeService(c.env.DB).remove(id)
@@ -60,8 +61,8 @@ export const remove = factory.createHandlers(
 )
 
 export const update = factory.createHandlers(
-  zValidator('param', idParamSchema),
-  zValidator('json', updateProductSchema),
+  zValidator('param', idParamSchema, validationHook),
+  zValidator('json', updateProductSchema, validationHook),
   async (c) => {
     const { id } = c.req.valid('param')
     const body = c.req.valid('json')

@@ -4,6 +4,7 @@ import { MovementTypeRepository } from '../repository/movementType.repository'
 import { MovementTypeService } from '../service/movementType.service'
 import { zValidator } from '@hono/zod-validator'
 import { codeParamSchema } from '../validators'
+import { validationHook } from './validation'
 
 const factory = createFactory<{ Bindings: Env }>()
 
@@ -18,7 +19,7 @@ export const getAll = factory.createHandlers(async (c) => {
 })
 
 export const getByCode = factory.createHandlers(
-  zValidator('param', codeParamSchema),
+  zValidator('param', codeParamSchema, validationHook),
   async (c) => {
     const { code } = c.req.valid('param')
     return c.json(await makeService(c.env.DB).getById(code))

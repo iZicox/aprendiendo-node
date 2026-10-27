@@ -10,6 +10,7 @@ import {
   locationProductParamSchema,
   paginationQuerySchema,
 } from '../validators'
+import { validationHook } from './validation'
 
 const factory = createFactory<{ Bindings: Env }>()
 
@@ -21,7 +22,7 @@ function makeService(d1: D1Database): MovementService {
 }
 
 export const getAll = factory.createHandlers(
-  zValidator('query', paginationQuerySchema),
+  zValidator('query', paginationQuerySchema, validationHook),
   async (c) => {
     const query = c.req.valid('query')
     return c.json(await makeService(c.env.DB).getAll(query))
@@ -29,7 +30,7 @@ export const getAll = factory.createHandlers(
 )
 
 export const getById = factory.createHandlers(
-  zValidator('param', idParamSchema),
+  zValidator('param', idParamSchema, validationHook),
   async (c) => {
     const { id } = c.req.valid('param')
     return c.json(await makeService(c.env.DB).getById(id))
@@ -37,8 +38,8 @@ export const getById = factory.createHandlers(
 )
 
 export const getByProductId = factory.createHandlers(
-  zValidator('param', idParamSchema),
-  zValidator('query', paginationQuerySchema),
+  zValidator('param', idParamSchema, validationHook),
+  zValidator('query', paginationQuerySchema, validationHook),
   async (c) => {
     const { id } = c.req.valid('param')
     const query = c.req.valid('query')
@@ -47,8 +48,8 @@ export const getByProductId = factory.createHandlers(
 )
 
 export const getByLocationId = factory.createHandlers(
-  zValidator('param', idParamSchema),
-  zValidator('query', paginationQuerySchema),
+  zValidator('param', idParamSchema, validationHook),
+  zValidator('query', paginationQuerySchema, validationHook),
   async (c) => {
     const { id } = c.req.valid('param')
     const query = c.req.valid('query')
@@ -57,8 +58,8 @@ export const getByLocationId = factory.createHandlers(
 )
 
 export const getByLocationIdAndProductId = factory.createHandlers(
-  zValidator('param', locationProductParamSchema),
-  zValidator('query', paginationQuerySchema),
+  zValidator('param', locationProductParamSchema, validationHook),
+  zValidator('query', paginationQuerySchema, validationHook),
   async (c) => {
     const { locationId, productId } = c.req.valid('param')
     const query = c.req.valid('query')
@@ -73,7 +74,7 @@ export const getByLocationIdAndProductId = factory.createHandlers(
 )
 
 export const insert = factory.createHandlers(
-  zValidator('json', createMovementSchema),
+  zValidator('json', createMovementSchema, validationHook),
   async (c) => {
     const { sign, ...movement } = c.req.valid('json')
     return c.json(await makeService(c.env.DB).insert(movement, sign))

@@ -4,6 +4,7 @@ import { drizzle } from 'drizzle-orm/d1'
 import { LocationRepository } from '../repository/location.repository'
 import { zValidator } from '@hono/zod-validator'
 import { createLocationSchema, idParamSchema } from '../validators'
+import { validationHook } from './validation'
 
 const factory = createFactory<{ Bindings: Env }>()
 
@@ -18,7 +19,7 @@ export const getAll = factory.createHandlers(async (c) => {
 })
 
 export const getById = factory.createHandlers(
-  zValidator('param', idParamSchema),
+  zValidator('param', idParamSchema, validationHook),
   async (c) => {
     const { id } = c.req.valid('param')
     return c.json(await makeService(c.env.DB).getById(id))
@@ -26,7 +27,7 @@ export const getById = factory.createHandlers(
 )
 
 export const create = factory.createHandlers(
-  zValidator('json', createLocationSchema),
+  zValidator('json', createLocationSchema, validationHook),
   async (c) => {
     const body = c.req.valid('json')
     return c.json(await makeService(c.env.DB).create(body))
@@ -34,7 +35,7 @@ export const create = factory.createHandlers(
 )
 
 export const deleteById = factory.createHandlers(
-  zValidator('param', idParamSchema),
+  zValidator('param', idParamSchema, validationHook),
   async (c) => {
     const { id } = c.req.valid('param')
     await makeService(c.env.DB).delete(id)

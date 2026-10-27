@@ -12,6 +12,7 @@ import {
   skuParamSchema,
   stockPaginationQuerySchema,
 } from '../validators'
+import { validationHook } from './validation'
 
 const factory = createFactory<{ Bindings: Env }>()
 
@@ -27,7 +28,7 @@ export const getTotal = factory.createHandlers(async (c) => {
 })
 
 export const getProductTotal = factory.createHandlers(
-  zValidator('param', productIdParamSchema),
+  zValidator('param', productIdParamSchema, validationHook),
   async (c) => {
     const { productId } = c.req.valid('param')
     return c.json(await makeService(c.env.DB).getProductTotal(productId))
@@ -35,7 +36,7 @@ export const getProductTotal = factory.createHandlers(
 )
 
 export const getLocationTotal = factory.createHandlers(
-  zValidator('param', locationIdParamSchema),
+  zValidator('param', locationIdParamSchema, validationHook),
   async (c) => {
     const { locationId } = c.req.valid('param')
     return c.json(await makeService(c.env.DB).getLocationTotal(locationId))
@@ -43,7 +44,7 @@ export const getLocationTotal = factory.createHandlers(
 )
 
 export const getProductInLocation = factory.createHandlers(
-  zValidator('param', locationProductParamSchema),
+  zValidator('param', locationProductParamSchema, validationHook),
   async (c) => {
     const { locationId, productId } = c.req.valid('param')
     return c.json(
@@ -53,15 +54,15 @@ export const getProductInLocation = factory.createHandlers(
 )
 
 export const getSummary = factory.createHandlers(
-  zValidator('query', stockPaginationQuerySchema),
+  zValidator('query', stockPaginationQuerySchema, validationHook),
   async (c) => {
     return c.json(await makeService(c.env.DB).getSummary(c.req.valid('query')))
   },
 )
 
 export const getLocationSummary = factory.createHandlers(
-  zValidator('param', locationIdParamSchema),
-  zValidator('query', stockPaginationQuerySchema),
+  zValidator('param', locationIdParamSchema, validationHook),
+  zValidator('query', stockPaginationQuerySchema, validationHook),
   async (c) => {
     const { locationId } = c.req.valid('param')
     return c.json(
@@ -74,7 +75,7 @@ export const getLocationSummary = factory.createHandlers(
 )
 
 export const getTotalsByProduct = factory.createHandlers(
-  zValidator('query', paginationQuerySchema),
+  zValidator('query', paginationQuerySchema, validationHook),
   async (c) => {
     return c.json(
       await makeService(c.env.DB).getTotalsByProduct(c.req.valid('query')),
@@ -87,7 +88,7 @@ export const getTotalsByLocation = factory.createHandlers(async (c) => {
 })
 
 export const getOutOfStock = factory.createHandlers(
-  zValidator('query', paginationQuerySchema),
+  zValidator('query', paginationQuerySchema, validationHook),
   async (c) => {
     return c.json(
       await makeService(c.env.DB).getOutOfStock(c.req.valid('query')),
@@ -96,7 +97,7 @@ export const getOutOfStock = factory.createHandlers(
 )
 
 export const getBySku = factory.createHandlers(
-  zValidator('param', skuParamSchema),
+  zValidator('param', skuParamSchema, validationHook),
   async (c) => {
     const { sku } = c.req.valid('param')
     return c.json(await makeService(c.env.DB).getBySku(sku))
