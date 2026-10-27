@@ -9,3 +9,6 @@ export const isUniqueViolation = (e: unknown): boolean =>
 
 export const isForeignKeyViolation = (e: unknown): boolean =>
   errorText(e).includes('FOREIGN KEY constraint failed')
+
+export const isStockNonNegativeViolation = (e: unknown): boolean =>
+  errorText(e).includes('CHECK constraint failed: stock_quantity_non_negative')
