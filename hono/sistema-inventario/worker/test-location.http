@@ -1,4 +1,3 @@
-
 // LOCATION
 @url = http://localhost:5173/api/locations
 
@@ -6,8 +5,8 @@
 GET {{url}}
 ###
 // listar por id
-@idProduct = 5
-GET {{url}}/{{idProduct}}
+@idLocation = 5
+GET {{url}}/{{idLocation}}
 ###
 // crear
 POST {{url}}
@@ -21,4 +20,3 @@ Content-Type: application/json
 // eliminar
 DELETE {{url}}/8
 ###
-

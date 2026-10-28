@@ -1,8 +1,7 @@
-
 // MOVEMENTS
 @url = http://localhost:5173/api/movements
 
-// listar todos
+// listar todos (más recientes primero)
 GET {{url}}
 ###
 // listar por id
@@ -11,16 +10,16 @@ GET {{url}}/{{idMovement}}
 ###
 // listar por producto
 @idProduct = 1
-GET {{url}}/product/{{idProduct}}
+GET {{url}}/products/{{idProduct}}
 ###
 // listar por ubicacion
 @idLocation = 1
-GET {{url}}/location/{{idLocation}}
+GET {{url}}/locations/{{idLocation}}
 ###
 // listar por ubicacion y producto
-GET {{url}}/location/{{idLocation}}/product/{{idProduct}}
+GET {{url}}/locations/{{idLocation}}/products/{{idProduct}}
 ###
-// crear
+// crear movimiento (el signo se obtiene de movement_type)
 POST {{url}}
 Content-Type: application/json
 
@@ -29,8 +28,21 @@ Content-Type: application/json
     "locationId": 2,
     "movementTypeCode": "ENTRY",
     "quantity": 5,
-    "note": "Prueba de movimiento",
-    "sign": 1
+    "note": "Prueba de movimiento"
+}
+
+###
+// crear transferencia atomica (TRANSFER_OUT + TRANSFER_IN)
+POST {{url}}/transfer
+Content-Type: application/json
+
+{
+    "productId": 1,
+    "fromLocationId": 1,
+    "toLocationId": 2,
+    "quantity": 3,
+    "transferId": "TRF-API-001",
+    "note": "Transferencia de prueba"
 }
 
 ###

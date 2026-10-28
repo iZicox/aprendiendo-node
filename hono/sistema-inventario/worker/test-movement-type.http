@@ -1,6 +1,5 @@
-
-// PRODUCTS
-@url = http://localhost:5173/api/movement-type
+// MOVEMENT TYPES
+@url = http://localhost:5173/api/movement-types
 
 // listar todos
 GET {{url}}
