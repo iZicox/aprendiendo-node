@@ -6,15 +6,17 @@ import {
   getByLocationIdAndProductId,
   getByProductId,
   insert,
+  transfer,
 } from '../controller/movement.controller'
 
 export const movementRoutes = new Hono<{ Bindings: Env }>()
   .get('/', ...getAll)
   .get('/:id', ...getById)
-  .get('/product/:id', ...getByProductId)
-  .get('/location/:id', ...getByLocationId)
+  .get('/products/:productId', ...getByProductId)
+  .get('/locations/:locationId', ...getByLocationId)
   .get(
-    '/location/:locationId/product/:productId',
+    '/locations/:locationId/products/:productId',
     ...getByLocationIdAndProductId,
   )
+  .post('/transfer', ...transfer)
   .post('/', ...insert)

@@ -9,7 +9,7 @@ import { stockAdminRoutes, stockRoutes } from './modules/routes/stock.routes'
 const api = new Hono<{ Bindings: Env }>()
   .basePath('/api')
   .route('/movements', movementRoutes)
-  .route('/movement-type', movementTypeRoutes)
+  .route('/movement-types', movementTypeRoutes)
   .route('/products', productsRoutes)
   .route('/locations', locationRoutes)
   .route('/stock', stockRoutes)

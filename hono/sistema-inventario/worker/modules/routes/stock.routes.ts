@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import {
   getAudit,
+  getByProductId,
   getBySku,
   getLocationSummary,
   getLocationTotal,
@@ -17,6 +18,7 @@ export const stockRoutes = new Hono<{ Bindings: Env }>()
   .get('/', ...getSummary)
   .get('/total', ...getTotal)
   .get('/products/:productId/total', ...getProductTotal)
+  .get('/products/:productId', ...getByProductId)
   .get('/locations/:locationId/total', ...getLocationTotal)
   .get('/locations/:locationId/products/:productId', ...getProductInLocation)
   .get('/locations/:locationId', ...getLocationSummary)
