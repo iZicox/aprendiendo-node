@@ -22,6 +22,13 @@
       "when": 1793097348141,
       "tag": "0002_unusual_ego",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1793216340177,
+      "tag": "0003_keen_mandarin",
+      "breakpoints": true
     }
   ]
 }
