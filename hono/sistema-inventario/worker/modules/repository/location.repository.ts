@@ -14,7 +14,7 @@ export class LocationRepository {
     return this.db.select().from(location).orderBy(location.id)
   }
 
-  async findById(id: number): Promise<SelectLocation> {
+  async findById(id: number): Promise<SelectLocation | undefined> {
     const [row] = await this.db
       .select()
       .from(location)

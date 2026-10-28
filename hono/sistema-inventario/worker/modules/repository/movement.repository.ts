@@ -1,6 +1,6 @@
 import type { DrizzleD1Database } from 'drizzle-orm/d1'
 import { movement, stock } from '../../db/schema'
-import { and, count, eq, sql } from 'drizzle-orm'
+import { and, count, desc, eq, sql } from 'drizzle-orm'
 import { toOffset } from '../../lib/pagination'
 import type {
   FindAllMovements,
@@ -22,7 +22,7 @@ export class MovementRepository {
       this.db
         .select()
         .from(movement)
-        .orderBy(movement.createdAt, movement.id)
+        .orderBy(desc(movement.createdAt), desc(movement.id))
         .limit(query.pageSize)
         .offset(toOffset(query)),
       this.db.select({ total: count() }).from(movement),
@@ -30,12 +30,11 @@ export class MovementRepository {
     return { items, total }
   }
 
-  async findById(id: number): Promise<SelectMovement> {
+  async findById(id: number): Promise<SelectMovement | undefined> {
     const [row] = await this.db
       .select()
       .from(movement)
       .where(eq(movement.id, id))
-      .orderBy(movement.createdAt)
     return row
   }
 
@@ -49,7 +48,7 @@ export class MovementRepository {
         .select()
         .from(movement)
         .where(where)
-        .orderBy(movement.createdAt, movement.id)
+        .orderBy(desc(movement.createdAt), desc(movement.id))
         .limit(query.pageSize)
         .offset(toOffset(query)),
       this.db.select({ total: count() }).from(movement).where(where),
@@ -67,7 +66,7 @@ export class MovementRepository {
         .select()
         .from(movement)
         .where(where)
-        .orderBy(movement.createdAt, movement.id)
+        .orderBy(desc(movement.createdAt), desc(movement.id))
         .limit(query.pageSize)
         .offset(toOffset(query)),
       this.db.select({ total: count() }).from(movement).where(where),
@@ -89,12 +88,21 @@ export class MovementRepository {
         .select()
         .from(movement)
         .where(where)
-        .orderBy(movement.createdAt, movement.id)
+        .orderBy(desc(movement.createdAt), desc(movement.id))
         .limit(query.pageSize)
         .offset(toOffset(query)),
       this.db.select({ total: count() }).from(movement).where(where),
     ])
     return { items, total }
+  }
+
+  async existsTransferId(transferId: string): Promise<boolean> {
+    const [row] = await this.db
+      .select({ id: movement.id })
+      .from(movement)
+      .where(eq(movement.transferId, transferId))
+      .limit(1)
+    return Boolean(row)
   }
 
   async insert(data: NewMovement, sign: MovementSign): Promise<SelectMovement> {
@@ -128,5 +136,56 @@ export class MovementRepository {
     ])
 
     return rows[0]
+  }
+
+  // Las dos piernas de una transferencia se ejecutan en un único batch atómico.
+  async transfer(
+    outMovement: NewMovement,
+    inMovement: NewMovement,
+  ): Promise<[SelectMovement, SelectMovement]> {
+    const [outRows, , , inRows] = await this.db.batch([
+      this.db.insert(movement).values(outMovement).returning(),
+      this.db
+        .insert(stock)
+        .values({
+          productId: outMovement.productId,
+          locationId: outMovement.locationId,
+        })
+        .onConflictDoNothing(),
+      this.db
+        .update(stock)
+        .set({
+          quantity: sql`${stock.quantity} - ${outMovement.quantity}`,
+          updatedAt: sql`datetime('now')`,
+        })
+        .where(
+          and(
+            eq(stock.productId, outMovement.productId),
+            eq(stock.locationId, outMovement.locationId),
+          ),
+        ),
+      this.db.insert(movement).values(inMovement).returning(),
+      this.db
+        .insert(stock)
+        .values({
+          productId: inMovement.productId,
+          locationId: inMovement.locationId,
+        })
+        .onConflictDoNothing(),
+      this.db
+        .update(stock)
+        .set({
+          quantity: sql`${stock.quantity} + ${inMovement.quantity}`,
+          updatedAt: sql`datetime('now')`,
+        })
+        .where(
+          and(
+            eq(stock.productId, inMovement.productId),
+            eq(stock.locationId, inMovement.locationId),
+          ),
+        ),
+    ])
+
+    return [outRows[0], inRows[0]]
   }
 }

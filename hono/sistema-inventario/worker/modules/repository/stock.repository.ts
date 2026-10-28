@@ -7,7 +7,15 @@ import {
   stock,
 } from '../../db/schema'
 import { DrizzleD1Database } from 'drizzle-orm/d1'
-import type { Page, PageOpts, PaginationQuery, StockRow } from '../../db/types'
+import type {
+  Page,
+  PageOpts,
+  PaginationQuery,
+  StockAuditRow,
+  StockLocationTotal,
+  StockProductTotal,
+  StockRow,
+} from '../../db/types'
 import { toOffset, toPage } from '../../lib/pagination'
 
 export class StockRepository {
@@ -25,9 +33,10 @@ export class StockRepository {
   }
 
   // 2. GET /stock/products/:productId/total  (null -> 404)
-  async getProductTotal(productId: number) {
+  async getProductTotal(productId: number): Promise<StockProductTotal | null> {
     const [row] = await this.db
       .select({
+        productId: product.id,
         sku: product.sku,
         total: sql<number>`coalesce(sum(${stock.quantity}), 0)`,
       })
@@ -38,13 +47,21 @@ export class StockRepository {
     return row ?? null
   }
 
-  // 3. GET /stock/locations/:locationId/total
-  async getLocationTotal(locationId: number): Promise<number> {
+  // 3. GET /stock/locations/:locationId/total  (null -> 404)
+  async getLocationTotal(
+    locationId: number,
+  ): Promise<StockLocationTotal | null> {
     const [row] = await this.db
-      .select({ total: sql<number>`coalesce(sum(${stock.quantity}), 0)` })
-      .from(stock)
-      .where(eq(stock.locationId, locationId))
-    return row.total
+      .select({
+        locationId: location.id,
+        locationCode: location.code,
+        total: sql<number>`coalesce(sum(${stock.quantity}), 0)`,
+      })
+      .from(location)
+      .leftJoin(stock, eq(stock.locationId, location.id))
+      .where(eq(location.id, locationId))
+      .groupBy(location.id, location.code)
+    return row ?? null
   }
 
   // 4. GET /stock/locations/:locationId/products/:productId
@@ -54,9 +71,11 @@ export class StockRepository {
   ): Promise<StockRow | null> {
     const [row] = await this.db
       .select({
+        productId: sql<number>`${product.id}`.as('product_id'),
+        locationId: sql<number>`${location.id}`.as('location_id'),
         sku: product.sku,
-        ubicacionCode: location.code,
-        total: sql<number>`coalesce(${stock.quantity}, 0)`,
+        locationCode: location.code,
+        quantity: sql<number>`coalesce(${stock.quantity}, 0)`,
       })
       .from(product)
       .innerJoin(location, eq(location.id, locationId))
@@ -77,9 +96,11 @@ export class StockRepository {
       const [items, [{ total }]] = await this.db.batch([
         this.db
           .select({
+            productId: sql<number>`${product.id}`.as('product_id'),
+            locationId: sql<number>`${location.id}`.as('location_id'),
             sku: product.sku,
-            ubicacionCode: location.code,
-            total: stock.quantity,
+            locationCode: location.code,
+            quantity: stock.quantity,
           })
           .from(stock)
           .innerJoin(product, eq(product.id, stock.productId))
@@ -97,9 +118,11 @@ export class StockRepository {
     const [items, [{ total }]] = await this.db.batch([
       this.db
         .select({
+          productId: sql<number>`${product.id}`.as('product_id'),
+          locationId: sql<number>`${location.id}`.as('location_id'),
           sku: product.sku,
-          ubicacionCode: location.code,
-          total: sql<number>`coalesce(${stock.quantity}, 0)`,
+          locationCode: location.code,
+          quantity: sql<number>`coalesce(${stock.quantity}, 0)`,
         })
         .from(product)
         .crossJoin(location)
@@ -133,9 +156,11 @@ export class StockRepository {
     const [items, [{ total }]] = await this.db.batch([
       this.db
         .select({
+          productId: sql<number>`${product.id}`.as('product_id'),
+          locationId: sql<number>`${location.id}`.as('location_id'),
           sku: product.sku,
-          ubicacionCode: location.code,
-          total: sql<number>`coalesce(${stock.quantity}, 0)`,
+          locationCode: location.code,
+          quantity: sql<number>`coalesce(${stock.quantity}, 0)`,
         })
         .from(product)
         .innerJoin(location, eq(location.id, locationId))
@@ -156,11 +181,13 @@ export class StockRepository {
   }
 
   // 7. GET /stock/by-product?page&pageSize
-  async getTotalsByProduct(opts: PaginationQuery) {
+  async getTotalsByProduct(
+    opts: PaginationQuery,
+  ): Promise<Page<StockProductTotal>> {
     const [items, [{ total }]] = await this.db.batch([
       this.db
         .select({
-          id: product.id,
+          productId: product.id,
           sku: product.sku,
           total: sql<number>`coalesce(sum(${stock.quantity}), 0)`,
         })
@@ -177,11 +204,11 @@ export class StockRepository {
   }
 
   // 8. GET /stock/by-location
-  async getTotalsByLocation() {
+  async getTotalsByLocation(): Promise<StockLocationTotal[]> {
     return this.db
       .select({
-        id: location.id,
-        ubicacionCode: location.code,
+        locationId: location.id,
+        locationCode: location.code,
         total: sql<number>`coalesce(sum(${stock.quantity}), 0)`,
       })
       .from(location)
@@ -191,12 +218,12 @@ export class StockRepository {
   }
 
   // 9. GET /stock/out-of-stock?page&pageSize
-  async getOutOfStock(opts: PaginationQuery) {
+  async getOutOfStock(opts: PaginationQuery): Promise<Page<StockProductTotal>> {
     const sumQty = sql<number>`coalesce(sum(${stock.quantity}), 0)`
 
     const [items, [{ total }]] = await this.db.batch([
       this.db
-        .select({ id: product.id, sku: product.sku, total: sumQty })
+        .select({ productId: product.id, sku: product.sku, total: sumQty })
         .from(product)
         .leftJoin(stock, eq(stock.productId, product.id))
         .groupBy(product.id, product.sku)
@@ -216,12 +243,14 @@ export class StockRepository {
   }
 
   // 10. GET /stock/sku/:sku  ([] -> 404)
-  async getBySku(sku: string) {
+  async getBySku(sku: string): Promise<StockRow[]> {
     return this.db
       .select({
+        productId: sql<number>`${product.id}`.as('product_id'),
+        locationId: sql<number>`${location.id}`.as('location_id'),
         sku: product.sku,
-        ubicacionCode: location.code,
-        total: sql<number>`coalesce(${stock.quantity}, 0)`,
+        locationCode: location.code,
+        quantity: sql<number>`coalesce(${stock.quantity}, 0)`,
       })
       .from(product)
       .crossJoin(location)
@@ -233,8 +262,28 @@ export class StockRepository {
       .orderBy(asc(location.code))
   }
 
-  // 11. GET /admin/stock/audit
-  async getAudit() {
+  // 11. GET /stock/products/:productId  ([] -> 404)
+  async getByProductId(productId: number): Promise<StockRow[]> {
+    return this.db
+      .select({
+        productId: sql<number>`${product.id}`.as('product_id'),
+        locationId: sql<number>`${location.id}`.as('location_id'),
+        sku: product.sku,
+        locationCode: location.code,
+        quantity: sql<number>`coalesce(${stock.quantity}, 0)`,
+      })
+      .from(product)
+      .crossJoin(location)
+      .leftJoin(
+        stock,
+        and(eq(stock.productId, product.id), eq(stock.locationId, location.id)),
+      )
+      .where(eq(product.id, productId))
+      .orderBy(asc(location.code))
+  }
+
+  // 12. GET /admin/stock/audit?page&pageSize
+  async getAudit(opts: PaginationQuery): Promise<Page<StockAuditRow>> {
     const pairs = this.db
       .select({
         productId: stock.productId,
@@ -254,12 +303,17 @@ export class StockRepository {
     const calculated = sql<number>`coalesce(sum(${movement.quantity} * ${movementType.sign}), 0)`
     const actual = sql<number>`coalesce(${stock.quantity}, 0)`
 
-    return this.db
+    const audit = this.db
       .select({
         productId: pairs.productId,
         locationId: pairs.locationId,
-        stockActual: actual,
-        stockCalculado: calculated,
+        stockActual: sql<number>`coalesce(${stock.quantity}, 0)`.as(
+          'stock_actual',
+        ),
+        stockCalculado:
+          sql<number>`coalesce(sum(${movement.quantity} * ${movementType.sign}), 0)`.as(
+            'stock_calculado',
+          ),
       })
       .from(pairs)
       .leftJoin(
@@ -279,6 +333,23 @@ export class StockRepository {
       .leftJoin(movementType, eq(movementType.code, movement.movementTypeCode))
       .groupBy(pairs.productId, pairs.locationId, stock.quantity)
       .having(sql`${actual} <> ${calculated}`)
-      .orderBy(asc(pairs.productId), asc(pairs.locationId))
+      .as('audit')
+
+    const [items, [{ total }]] = await this.db.batch([
+      this.db
+        .select({
+          productId: audit.productId,
+          locationId: audit.locationId,
+          stockActual: audit.stockActual,
+          stockCalculado: audit.stockCalculado,
+        })
+        .from(audit)
+        .orderBy(asc(audit.productId), asc(audit.locationId))
+        .limit(opts.pageSize)
+        .offset(toOffset(opts)),
+      this.db.select({ total: count() }).from(audit),
+    ])
+
+    return toPage(items, total, opts)
   }
 }

@@ -7,6 +7,7 @@ import type {
   NewProduct,
   PaginationQuery,
   Product,
+  UpdateProduct,
 } from '../../db/types'
 
 export class ProductsRepository {
@@ -29,7 +30,7 @@ export class ProductsRepository {
     return { items, total }
   }
 
-  async findById(id: number): Promise<Product> {
+  async findById(id: number): Promise<Product | undefined> {
     const [row] = await this.db
       .select()
       .from(product)
@@ -38,7 +39,7 @@ export class ProductsRepository {
     return row
   }
 
-  async findBySku(sku: string): Promise<Product> {
+  async findBySku(sku: string): Promise<Product | undefined> {
     const [row] = await this.db
       .select()
       .from(product)
@@ -47,12 +48,12 @@ export class ProductsRepository {
     return row
   }
 
-  async create(data: NewProduct): Promise<NewProduct> {
+  async create(data: NewProduct): Promise<Product> {
     const [row] = await this.db.insert(product).values(data).returning()
     return row
   }
 
-  async update(id: number, data: NewProduct): Promise<Product> {
+  async update(id: number, data: UpdateProduct): Promise<Product> {
     const [row] = await this.db
       .update(product)
       .set({ ...data, updatedAt: sql`(datetime('now'))` })
