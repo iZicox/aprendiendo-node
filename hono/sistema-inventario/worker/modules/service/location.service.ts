@@ -1,5 +1,5 @@
 import type { InsertLocation, SelectLocation } from '../../db/types'
-import { isForeignKeyViolation, isUniqueViolation } from '../../lib/db-erros'
+import { isForeignKeyViolation, isUniqueViolation } from '../../lib/db-errors'
 import { ConflictError, NotFoundError } from '../../lib/errors'
 import { LocationRepository } from '../repository/location.repository'
 

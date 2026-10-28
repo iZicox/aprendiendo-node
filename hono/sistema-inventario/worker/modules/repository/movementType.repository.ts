@@ -17,7 +17,7 @@ export class MovementTypeRepository {
     return this.db.select().from(movementType).orderBy(movementType.code)
   }
 
-  async findByCode(code: string): Promise<MovementTypeSelect> {
+  async findByCode(code: string): Promise<MovementTypeSelect | undefined> {
     const [row] = await this.db // usa await por la desconstruccion []
       .select()
       .from(movementType)

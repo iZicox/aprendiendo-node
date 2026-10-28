@@ -1,16 +1,10 @@
 // worker/modules/products/products.service.ts
 // Reglas de negocio. No conoce Hono ni SQL.
-import type {
-  CreateProductInput,
-  NewProduct,
-  Page,
-  PaginationQuery,
-  Product,
-  UpdateProductInput,
-} from '../../db/types'
-import { isForeignKeyViolation, isUniqueViolation } from '../../lib/db-erros'
+import type { Page, PaginationQuery, Product } from '../../db/types'
+import { isForeignKeyViolation, isUniqueViolation } from '../../lib/db-errors'
 import { ConflictError, NotFoundError } from '../../lib/errors'
 import { toPage } from '../../lib/pagination'
+import type { CreateProductInput, UpdateProductInput } from '../validators'
 import type { ProductsRepository } from '../repository/products.repository'
 
 export class ProductsService {
@@ -37,7 +31,7 @@ export class ProductsService {
     return found
   }
 
-  async create(input: CreateProductInput): Promise<NewProduct> {
+  async create(input: CreateProductInput): Promise<Product> {
     if (await this.repo.findBySku(input.sku)) {
       throw new ConflictError('Ya existe un producto con ese SKU')
     }

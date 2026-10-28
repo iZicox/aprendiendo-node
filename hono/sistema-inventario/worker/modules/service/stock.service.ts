@@ -5,8 +5,8 @@ import type {
   StockAuditRow,
   StockLocationTotal,
   StockProductTotal,
-  StockProductTotalWithId,
   StockRow,
+  StockTotal,
 } from '../../db/types'
 import { NotFoundError } from '../../lib/errors'
 import { LocationRepository } from '../repository/location.repository'
@@ -26,8 +26,8 @@ export class StockService {
     if (!location) throw new NotFoundError('Ubicacion no encontrada')
   }
 
-  async getTotal(): Promise<number> {
-    return this.repo.getTotal()
+  async getTotal(): Promise<StockTotal> {
+    return { total: await this.repo.getTotal() }
   }
 
   async getProductTotal(productId: number): Promise<StockProductTotal> {
@@ -36,9 +36,10 @@ export class StockService {
     return row
   }
 
-  async getLocationTotal(locationId: number): Promise<number> {
-    await this.ensureLocationExists(locationId)
-    return this.repo.getLocationTotal(locationId)
+  async getLocationTotal(locationId: number): Promise<StockLocationTotal> {
+    const row = await this.repo.getLocationTotal(locationId)
+    if (!row) throw new NotFoundError('Ubicacion no encontrada')
+    return row
   }
 
   async getProductInLocation(
@@ -66,7 +67,7 @@ export class StockService {
 
   async getTotalsByProduct(
     opts: PaginationQuery,
-  ): Promise<Page<StockProductTotalWithId>> {
+  ): Promise<Page<StockProductTotal>> {
     return this.repo.getTotalsByProduct(opts)
   }
 
@@ -74,9 +75,7 @@ export class StockService {
     return this.repo.getTotalsByLocation()
   }
 
-  async getOutOfStock(
-    opts: PaginationQuery,
-  ): Promise<Page<StockProductTotalWithId>> {
+  async getOutOfStock(opts: PaginationQuery): Promise<Page<StockProductTotal>> {
     return this.repo.getOutOfStock(opts)
   }
 
@@ -86,7 +85,13 @@ export class StockService {
     return rows
   }
 
-  async getAudit(): Promise<StockAuditRow[]> {
-    return this.repo.getAudit()
+  async getByProductId(productId: number): Promise<StockRow[]> {
+    const rows = await this.repo.getByProductId(productId)
+    if (rows.length === 0) throw new NotFoundError('Producto no encontrado')
+    return rows
+  }
+
+  async getAudit(opts: PaginationQuery): Promise<Page<StockAuditRow>> {
+    return this.repo.getAudit(opts)
   }
 }
