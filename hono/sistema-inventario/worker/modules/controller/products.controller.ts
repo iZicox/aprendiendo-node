@@ -47,7 +47,9 @@ export const create = factory.createHandlers(
   zValidator('json', createProductSchema, validationHook),
   async (c) => {
     const body = c.req.valid('json')
-    return c.json(await makeService(c.env.DB).create(body))
+    const product = await makeService(c.env.DB).create(body)
+    c.header('Location', `/api/products/${product.id}`)
+    return c.json(product, 201)
   },
 )
 

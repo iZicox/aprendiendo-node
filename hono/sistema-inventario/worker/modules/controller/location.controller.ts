@@ -30,7 +30,9 @@ export const create = factory.createHandlers(
   zValidator('json', createLocationSchema, validationHook),
   async (c) => {
     const body = c.req.valid('json')
-    return c.json(await makeService(c.env.DB).create(body))
+    const location = await makeService(c.env.DB).create(body)
+    c.header('Location', `/api/locations/${location.id}`)
+    return c.json(location, 201)
   },
 )
 

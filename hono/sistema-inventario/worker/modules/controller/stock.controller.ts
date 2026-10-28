@@ -104,6 +104,17 @@ export const getBySku = factory.createHandlers(
   },
 )
 
-export const getAudit = factory.createHandlers(async (c) => {
-  return c.json(await makeService(c.env.DB).getAudit())
-})
+export const getByProductId = factory.createHandlers(
+  zValidator('param', productIdParamSchema, validationHook),
+  async (c) => {
+    const { productId } = c.req.valid('param')
+    return c.json(await makeService(c.env.DB).getByProductId(productId))
+  },
+)
+
+export const getAudit = factory.createHandlers(
+  zValidator('query', paginationQuerySchema, validationHook),
+  async (c) => {
+    return c.json(await makeService(c.env.DB).getAudit(c.req.valid('query')))
+  },
+)
