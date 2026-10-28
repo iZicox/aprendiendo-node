@@ -8,7 +8,7 @@ export const toPage = <T>(
   total: number,
   { page, pageSize }: PaginationQuery,
 ): Page<T> => {
-  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const totalPages = Math.ceil(total / pageSize)
   return {
     meta: {
       page,

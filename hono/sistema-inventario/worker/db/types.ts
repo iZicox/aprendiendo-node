@@ -1,11 +1,4 @@
-import {
-  createMovementSchema,
-  createProductSchema,
-  paginationQuerySchema,
-  updateProductSchema,
-} from '../modules/validators'
 import { location, movement, product } from './schema'
-import { z } from 'zod'
 
 // LOCATION
 export type InsertLocation = typeof location.$inferInsert
@@ -17,10 +10,6 @@ export type Product = typeof product.$inferSelect
 export type NewProduct = typeof product.$inferInsert
 export type UpdateProduct = Partial<Omit<NewProduct, 'id'>>
 
-// para el body de post y put
-export type CreateProductInput = z.infer<typeof createProductSchema>
-export type UpdateProductInput = z.infer<typeof updateProductSchema>
-
 // tipos de resultado
 export type FindAllProducts = {
   items: Product[]
@@ -28,7 +17,10 @@ export type FindAllProducts = {
 }
 
 // PAGINATION
-export type PaginationQuery = z.infer<typeof paginationQuerySchema>
+export type PaginationQuery = {
+  page: number
+  pageSize: number
+}
 export type Page<T> = {
   meta: {
     page: number
@@ -51,28 +43,28 @@ export type FindAllMovements = {
   total: number
 }
 
-// para el body de post
-export type CreateMovementInput = z.infer<typeof createMovementSchema>
-
 // Stock
 export type StockRow = {
+  productId: number
+  locationId: number
   sku: string
-  ubicacionCode: string
+  locationCode: string
+  quantity: number
+}
+
+export type StockTotal = {
   total: number
 }
 
 export type StockProductTotal = {
+  productId: number
   sku: string
   total: number
 }
 
-export type StockProductTotalWithId = StockProductTotal & {
-  id: number
-}
-
 export type StockLocationTotal = {
-  id: number
-  ubicacionCode: string
+  locationId: number
+  locationCode: string
   total: number
 }
 

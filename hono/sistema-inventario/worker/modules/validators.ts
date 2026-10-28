@@ -1,4 +1,4 @@
-// worker/modules/products/products.schema.ts
+// worker/modules/validators.ts
 // Validación de entrada con Zod (no confundir con las tablas de Drizzle,
 // que viven en worker/db/schema.ts).
 import { z } from 'zod'
@@ -14,6 +14,7 @@ export const idParamSchema = z.object({
 const CODE_PATTERN = /^[A-Z0-9._-]+$/
 const CODE_MESSAGE =
   'Solo se permiten letras, números, punto, guion y guion bajo'
+const NOTE_MAX_LENGTH = 500
 
 // universal string code schema upper case
 export const codeParamSchema = z.object({
@@ -59,6 +60,9 @@ export const skuParamSchema = z.object({
   sku: skuSchema,
 })
 
+export type CreateProductInput = z.infer<typeof createProductSchema>
+export type UpdateProductInput = z.infer<typeof updateProductSchema>
+
 /**
  * Validadores para Location
  */
@@ -82,6 +86,7 @@ export const locationProductParamSchema = z.object({
   productId: z.coerce.number().int().positive(),
 })
 
+// El signo ya no viaja en el body: se obtiene del catálogo movement_type.
 export const createMovementSchema = z.object({
   productId: z.coerce.number().int().positive(),
   locationId: z.coerce.number().int().positive(),
@@ -93,10 +98,33 @@ export const createMovementSchema = z.object({
     .max(50)
     .regex(CODE_PATTERN, CODE_MESSAGE),
   quantity: z.coerce.number().int().positive(),
-  transferId: z.string().trim().min(1).optional(),
-  note: z.string().trim().min(1).optional(),
-  sign: z.union([z.literal(1), z.literal(-1)]),
+  note: z.string().trim().min(1).max(NOTE_MAX_LENGTH).optional(),
 })
+
+// Las transferencias se crean siempre en pareja (OUT + IN) y de forma atómica.
+export const createTransferSchema = z
+  .object({
+    productId: z.coerce.number().int().positive(),
+    fromLocationId: z.coerce.number().int().positive(),
+    toLocationId: z.coerce.number().int().positive(),
+    quantity: z.coerce.number().int().positive(),
+    transferId: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .min(1)
+      .max(50)
+      .regex(CODE_PATTERN, CODE_MESSAGE)
+      .optional(),
+    note: z.string().trim().min(1).max(NOTE_MAX_LENGTH).optional(),
+  })
+  .refine((data) => data.fromLocationId !== data.toLocationId, {
+    message: 'La ubicación de origen y destino deben ser diferentes',
+    path: ['toLocationId'],
+  })
+
+export type CreateMovementInput = z.infer<typeof createMovementSchema>
+export type CreateTransferInput = z.infer<typeof createTransferSchema>
 
 /**
  * Validadores para Stock
