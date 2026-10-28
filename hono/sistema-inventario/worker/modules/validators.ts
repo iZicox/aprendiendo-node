@@ -144,3 +144,26 @@ export const stockPaginationQuerySchema = paginationQuerySchema.extend({
     .default('false')
     .transform((value) => value === 'true'),
 })
+
+
+/**
+ * Validadores para la autenticacion
+ */
+// El límite de bcrypt es en bytes UTF-8, no en caracteres.
+const registerPasswordSchema = z
+  .string()
+  .min(8, 'La contraseña debe tener al menos 8 caracteres')
+  .refine(
+    (password) => new TextEncoder().encode(password).length <= 72,
+    'La contraseña no puede superar los 72 bytes en UTF-8',
+  )
+
+export const registerSchema = z.object({
+  email: z.string().trim().toLowerCase().email('Email no válido'),
+  password: registerPasswordSchema,
+})
+
+export const loginSchema = z.object({
+  email: z.string().trim().toLowerCase().email('Email no válido'),
+  password: z.string().min(1, 'La contraseña es obligatoria'),
+})

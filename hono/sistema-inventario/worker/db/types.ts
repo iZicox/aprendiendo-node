@@ -1,4 +1,4 @@
-import { location, movement, product } from './schema'
+import { location, movement, product, users } from './schema'
 
 // LOCATION
 export type InsertLocation = typeof location.$inferInsert
@@ -76,3 +76,25 @@ export type StockAuditRow = {
 }
 
 export type PageOpts = PaginationQuery & { includeZero?: boolean }
+
+
+// USER
+export type UserRole = (typeof users.$inferSelect)["role"];
+
+export type CreateUserInput = {
+  email: string;
+  passwordHash: string;
+  role?: UserRole;
+};
+
+export type LoginUser = {
+  id: number,
+  email: string,
+  passwordHash: string,
+  role: string,
+  tokenVersion: string,
+}
+
+export type RegisterInput = {
+  email: string; password: string; role?: UserRole;
+}

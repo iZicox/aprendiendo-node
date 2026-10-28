@@ -1,5 +1,7 @@
+import { Menu } from './components/Menu'
+
 function App() {
-  return <></>
+  return <Menu />
 }
 
 export default App

@@ -101,3 +101,24 @@ export const stock = sqliteTable(
     index('idx_stock_location').on(table.locationId),
   ],
 )
+
+export const users = sqliteTable(
+  "users",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    email: text("email").notNull().unique(),
+    passwordHash: text("password_hash").notNull(),
+    role: text("role", { enum: ["admin", "user"] })
+      .notNull()
+      .default("user"),
+    createdAt: text("created_at")
+      .notNull()
+      .default(sql`(CURRENT_TIMESTAMP)`),
+  },
+  (table) => [
+    check(
+      "users_role_check",
+      sql`${table.role} IN ('admin', 'user')`,
+    ),
+  ],
+);
