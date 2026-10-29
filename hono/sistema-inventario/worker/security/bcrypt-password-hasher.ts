@@ -3,9 +3,11 @@ import { hash, compare, truncates } from "bcryptjs";
 import type { PasswordHasher } from "./password-hasher";
 
 export class BcryptPasswordHasher implements PasswordHasher {
-  constructor(
-    private readonly rounds: number = 10,
-  ) {}
+  private readonly rounds: number;
+
+  constructor(rounds: number = 10) {
+    this.rounds = rounds;
+  }
 
   async hash(password: string): Promise<string> {
     if (truncates(password)) {

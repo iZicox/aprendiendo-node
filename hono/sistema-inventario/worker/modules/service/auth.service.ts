@@ -1,30 +1,15 @@
-
-// ---------- Errores ----------
-
 import { sign, verify } from "hono/jwt";
-import { UserRole } from "../../db/types";
-import { PasswordHasher } from "../../security/password-hasher";
-import { RefreshTokenRepository } from "../repository/refreshTokens.repository";
-import { UserRepository } from "../repository/user.repository";
 
-export type AuthErrorCode =
-    | "INVALID_CREDENTIALS"
-    | "INVALID_PASSWORD"
-    | "INVALID_EMAIL"
-    | "EMAIL_TAKEN"
-    | "INVALID_REFRESH_TOKEN"
-    | "INVALID_ACCESS_TOKEN"
-    | "USER_NOT_FOUND";
-
-export class AuthError extends Error {
-    constructor(
-        public readonly code: AuthErrorCode,
-        message?: string,
-    ) {
-        super(message ?? code);
-        this.name = "AuthError";
-    }
-}
+import type { UserRole } from "../../db/types";
+import {
+    BadRequestError,
+    ConflictError,
+    NotFoundError,
+    UnauthorizedError,
+} from "../../lib/errors";
+import type { PasswordHasher } from "../../security/password-hasher";
+import type { RefreshTokenRepository } from "../repository/refreshTokens.repository";
+import type { UserRepository } from "../repository/user.repository";
 
 // ---------- Tipos ----------
 
@@ -46,6 +31,9 @@ export interface Session {
     refreshToken: string; // valor en claro: va a la cookie, nunca se guarda tal cual
     refreshExpiresAt: Date;
 }
+
+export const ACCESS_TTL_SECONDS = 15 * 60;
+export const REFRESH_TTL_SECONDS = 30 * 24 * 60 * 60;
 
 const MIN_PASSWORD_LENGTH = 8;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -95,27 +83,26 @@ export class AuthService {
         this.refreshTokens = refreshTokens;
         this.hasher = hasher;
         this.config = config;
-        this.accessTtl = config.accessTtlSeconds ?? 15 * 60;
-        this.refreshTtl = config.refreshTtlSeconds ?? 30 * 24 * 60 * 60;
+        this.accessTtl = config.accessTtlSeconds ?? ACCESS_TTL_SECONDS;
+        this.refreshTtl = config.refreshTtlSeconds ?? REFRESH_TTL_SECONDS;
     }
 
     // --- Registro ---
     async register(email: string, password: string) {
         const normalized = normalizeEmail(email);
         if (!EMAIL_REGEX.test(normalized)) {
-            throw new AuthError("INVALID_EMAIL", "El email no es válido");
+            throw new BadRequestError("El email no es válido");
         }
         if (password.length < MIN_PASSWORD_LENGTH) {
-            throw new AuthError(
-                "INVALID_PASSWORD",
+            throw new BadRequestError(
                 `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres`,
             );
         }
 
-        const user = await this.users.findByEmail(normalized)
+        const user = await this.users.findByEmail(normalized);
 
         if (user) {
-            throw new AuthError("EMAIL_TAKEN", "Ese email ya está registrado");
+            throw new ConflictError("Ese email ya está registrado");
         }
 
         const passwordHash = await this.hashPassword(password);
@@ -125,7 +112,7 @@ export class AuthService {
         } catch (err) {
             // Carrera: dos registros simultáneos; el UNIQUE de la BD es la fuente de verdad.
             if (err instanceof Error && /UNIQUE/i.test(err.message)) {
-                throw new AuthError("EMAIL_TAKEN", "Ese email ya está registrado");
+                throw new ConflictError("Ese email ya está registrado");
             }
             throw err;
         }
@@ -141,10 +128,14 @@ export class AuthService {
         const valid = await this.hasher.verify(password, hashToCompare);
 
         if (!user || !valid) {
-            throw new AuthError("INVALID_CREDENTIALS", "Email o contraseña incorrectos");
+            throw new UnauthorizedError("Email o contraseña incorrectos");
         }
 
-        const session = await this.issueSession(user.id, user.role, crypto.randomUUID());
+        const session = await this.issueSession(
+            user.id,
+            user.role,
+            crypto.randomUUID(),
+        );
         return {
             user: { id: user.id, email: user.email, role: user.role },
             ...session,
@@ -156,27 +147,31 @@ export class AuthService {
         const tokenHash = await sha256Hex(rawRefreshToken);
         const stored = await this.refreshTokens.findByHash(tokenHash);
 
-        if (!stored) throw new AuthError("INVALID_REFRESH_TOKEN");
+        if (!stored) {
+            throw new UnauthorizedError("Sesión inválida o expirada");
+        }
 
         // Token ya usado/revocado → posible robo: invalidamos toda la cadena.
         if (stored.revokedAt) {
             await this.refreshTokens.revokeFamily(stored.familyId);
-            throw new AuthError("INVALID_REFRESH_TOKEN");
+            throw new UnauthorizedError("Sesión inválida o expirada");
         }
 
         if (stored.expiresAt.getTime() <= Date.now()) {
-            throw new AuthError("INVALID_REFRESH_TOKEN");
+            throw new UnauthorizedError("Sesión inválida o expirada");
         }
 
         // Reclamo atómico: si otra petición lo gastó entre medias, tratamos como reutilización.
         const claimed = await this.refreshTokens.revokeIfActive(stored.id);
         if (!claimed) {
             await this.refreshTokens.revokeFamily(stored.familyId);
-            throw new AuthError("INVALID_REFRESH_TOKEN");
+            throw new UnauthorizedError("Sesión inválida o expirada");
         }
 
         const user = await this.users.findById(stored.userId);
-        if (!user) throw new AuthError("INVALID_REFRESH_TOKEN");
+        if (!user) {
+            throw new UnauthorizedError("Sesión inválida o expirada");
+        }
 
         // Mismo familyId: la cadena de rotación continúa.
         return this.issueSession(user.id, user.role, stored.familyId);
@@ -203,18 +198,17 @@ export class AuthService {
         newPassword: string,
     ): Promise<void> {
         if (newPassword.length < MIN_PASSWORD_LENGTH) {
-            throw new AuthError(
-                "INVALID_PASSWORD",
+            throw new BadRequestError(
                 `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres`,
             );
         }
 
         const creds = await this.users.findCredentialsById(userId);
-        if (!creds) throw new AuthError("USER_NOT_FOUND");
+        if (!creds) throw new NotFoundError("Usuario no encontrado");
 
         const ok = await this.hasher.verify(currentPassword, creds.passwordHash);
         if (!ok) {
-            throw new AuthError("INVALID_CREDENTIALS", "La contraseña actual no es correcta");
+            throw new BadRequestError("La contraseña actual no es correcta");
         }
 
         const newHash = await this.hashPassword(newPassword);
@@ -224,16 +218,30 @@ export class AuthService {
         await this.refreshTokens.revokeAllForUser(userId);
     }
 
-    // --- Verificación del access token (para tu middleware) ---
-    async verifyAccessToken(token: string): Promise<AccessTokenPayload> {
+    // --- Perfil del usuario autenticado ---
+    async getProfile(userId: number) {
+        const user = await this.users.findById(userId);
+        if (!user) throw new NotFoundError("Usuario no encontrado");
+        return user;
+    }
+
+    // --- Verificación del access token (para el middleware) ---
+    static async verifyAccessToken(
+        token: string,
+        jwtSecret: string,
+    ): Promise<AccessTokenPayload> {
+        if (!jwtSecret || jwtSecret.length < 32) {
+            throw new Error("JWT_SECRET no configurado o demasiado corto");
+        }
+
         try {
             return (await verify(
                 token,
-                this.config.jwtSecret,
+                jwtSecret,
                 "HS256",
             )) as unknown as AccessTokenPayload;
         } catch {
-            throw new AuthError("INVALID_ACCESS_TOKEN");
+            throw new UnauthorizedError("Token inválido o expirado");
         }
     }
 
@@ -269,8 +277,7 @@ export class AuthService {
         try {
             return await this.hasher.hash(password);
         } catch (err) {
-            throw new AuthError(
-                "INVALID_PASSWORD",
+            throw new BadRequestError(
                 err instanceof Error ? err.message : "Contraseña no válida",
             );
         }

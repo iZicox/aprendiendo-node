@@ -1,7 +1,7 @@
 import { DrizzleD1Database } from "drizzle-orm/d1";
 import { users } from "../../db/schema";
 import { eq } from "drizzle-orm";
-import { CreateUserInput, UserRole } from "../../db/types";
+import type { CreateUserInput, UserRole } from "../../db/types";
 
 
 // Campos que pueden devolverse sin exponer el hash.
