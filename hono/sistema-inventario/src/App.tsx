@@ -7,6 +7,7 @@ import { CreateTransferPage } from './pages/CreateTransferPage'
 import { GeneralInventoryPage } from './pages/GeneralInventoryPage'
 import { LocationInventoryPage } from './pages/LocationInventoryPage'
 import { LoginPage } from './pages/LoginPage'
+import { ProductInventoryPage } from './pages/ProductInventoryPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { RegisterPage } from './pages/RegisterPage'
 
@@ -31,6 +32,10 @@ export default function App() {
         <Route
           path="/inventario/ubicaciones"
           element={<LocationInventoryPage />}
+        />
+        <Route
+          path="/inventario/productos"
+          element={<ProductInventoryPage />}
         />
         <Route path="/productos/nuevo" element={<CreateProductPage />} />
         <Route path="/movimientos/nuevo" element={<CreateMovementPage />} />

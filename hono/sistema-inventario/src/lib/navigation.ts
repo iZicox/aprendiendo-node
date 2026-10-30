@@ -34,6 +34,11 @@ export const NAV_GROUPS: NavGroup[] = [
         to: '/inventario/ubicaciones',
         icon: MapPinIcon,
       },
+      {
+        label: 'Por producto',
+        to: '/inventario/productos',
+        icon: BoxIcon,
+      },
     ],
   },
   {
@@ -71,6 +76,10 @@ const PAGE_META: Record<string, PageMeta> = {
   '/inventario/ubicaciones': {
     title: 'Inventario por ubicación',
     subtitle: 'Consulta y compara el stock de cada almacén',
+  },
+  '/inventario/productos': {
+    title: 'Inventario por producto',
+    subtitle: 'Total y existencias por ubicación de cada SKU',
   },
   '/productos/nuevo': {
     title: 'Nuevo producto',
