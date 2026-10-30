@@ -5,6 +5,12 @@
 // listar todos
 GET {{url}}?page=39&pageSize=3
 ###
+// buscar por SKU (parcial, sin distinguir mayúsculas)
+GET {{url}}?page=1&pageSize=10&search=lap
+###
+// buscar sin coincidencias (debe devolver 200 con items vacíos)
+GET {{url}}?search=ZZZ-NO-EXISTE
+###
 // listar por id
 @idProduct = 2
 GET {{url}}/{{idProduct}}

@@ -60,6 +60,26 @@ export const skuParamSchema = z.object({
   sku: skuSchema,
 })
 
+// Listado de productos con búsqueda opcional por SKU (parcial, sin mayúsculas obligatorias).
+export const productsQuerySchema = paginationQuerySchema.extend({
+  search: z.string().trim().toUpperCase().max(50).optional(),
+})
+
+/**
+ * Validador de la cabecera Idempotency-Key
+ * Lógica: una llave = una operación lógica. Debe ser única por reintento,
+ * distinta para cada operación nueva (p. ej. crypto.randomUUID()).
+ */
+export const idempotencyKeySchema = z
+  .string()
+  .trim()
+  .min(8, 'La Idempotency-Key debe tener al menos 8 caracteres')
+  .max(100, 'La Idempotency-Key no puede superar los 100 caracteres')
+  .regex(
+    /^[A-Za-z0-9._:-]+$/,
+    'La Idempotency-Key solo admite letras, números, punto, guion, guion bajo y dos puntos',
+  )
+
 export type CreateProductInput = z.infer<typeof createProductSchema>
 export type UpdateProductInput = z.infer<typeof updateProductSchema>
 
@@ -144,7 +164,6 @@ export const stockPaginationQuerySchema = paginationQuerySchema.extend({
     .default('false')
     .transform((value) => value === 'true'),
 })
-
 
 /**
  * Validadores para la autenticacion

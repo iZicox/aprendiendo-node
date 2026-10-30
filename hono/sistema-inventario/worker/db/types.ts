@@ -1,4 +1,4 @@
-import { location, movement, product, users } from './schema'
+import { location, movement, movementOperation, product, users } from './schema'
 
 // LOCATION
 export type InsertLocation = typeof location.$inferInsert
@@ -21,6 +21,10 @@ export type PaginationQuery = {
   page: number
   pageSize: number
 }
+// Paginación de productos + búsqueda parcial por SKU.
+export type ProductQuery = PaginationQuery & {
+  search?: string | undefined
+}
 export type Page<T> = {
   meta: {
     page: number
@@ -37,6 +41,11 @@ export type Page<T> = {
 export type NewMovement = typeof movement.$inferInsert
 export type SelectMovement = typeof movement.$inferSelect
 export type MovementSign = 1 | -1
+
+// MOVEMENT OPERATION (idempotencia)
+export type NewMovementOperation = typeof movementOperation.$inferInsert
+export type SelectMovementOperation = typeof movementOperation.$inferSelect
+export type OperationKind = NonNullable<NewMovementOperation['kind']>
 
 export type FindAllMovements = {
   items: SelectMovement[]
@@ -77,24 +86,25 @@ export type StockAuditRow = {
 
 export type PageOpts = PaginationQuery & { includeZero?: boolean }
 
-
 // USER
-export type UserRole = (typeof users.$inferSelect)["role"];
+export type UserRole = (typeof users.$inferSelect)['role']
 
 export type CreateUserInput = {
-  email: string;
-  passwordHash: string;
-  role?: UserRole;
-};
+  email: string
+  passwordHash: string
+  role?: UserRole
+}
 
 export type LoginUser = {
-  id: number,
-  email: string,
-  passwordHash: string,
-  role: string,
-  tokenVersion: string,
+  id: number
+  email: string
+  passwordHash: string
+  role: string
+  tokenVersion: string
 }
 
 export type RegisterInput = {
-  email: string; password: string; role?: UserRole;
+  email: string
+  password: string
+  role?: UserRole
 }

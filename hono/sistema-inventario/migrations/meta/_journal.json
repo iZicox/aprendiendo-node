@@ -29,6 +29,13 @@
       "when": 1793216340177,
       "tag": "0003_keen_mandarin",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1793356735902,
+      "tag": "0004_magenta_jackpot",
+      "breakpoints": true
     }
   ]
 }

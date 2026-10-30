@@ -6,7 +6,7 @@ import { zValidator } from '@hono/zod-validator'
 import {
   createProductSchema,
   idParamSchema,
-  paginationQuerySchema,
+  productsQuerySchema,
   skuParamSchema,
   updateProductSchema,
 } from '../validators'
@@ -21,7 +21,7 @@ function makeService(d1: D1Database): ProductsService {
 }
 
 export const getAll = factory.createHandlers(
-  zValidator('query', paginationQuerySchema, validationHook),
+  zValidator('query', productsQuerySchema, validationHook),
   async (c) => {
     return c.json(await makeService(c.env.DB).getAll(c.req.valid('query')))
   },

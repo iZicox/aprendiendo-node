@@ -1,6 +1,6 @@
 // worker/modules/products/products.service.ts
 // Reglas de negocio. No conoce Hono ni SQL.
-import type { Page, PaginationQuery, Product } from '../../db/types'
+import type { Page, Product, ProductQuery } from '../../db/types'
 import { isForeignKeyViolation, isUniqueViolation } from '../../lib/db-errors'
 import { ConflictError, NotFoundError } from '../../lib/errors'
 import { toPage } from '../../lib/pagination'
@@ -14,7 +14,7 @@ export class ProductsService {
     this.repo = repo
   }
 
-  async getAll(query: PaginationQuery): Promise<Page<Product>> {
+  async getAll(query: ProductQuery): Promise<Page<Product>> {
     const { items, total } = await this.repo.findAll(query)
     return toPage(items, total, query)
   }

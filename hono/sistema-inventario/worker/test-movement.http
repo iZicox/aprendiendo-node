@@ -20,8 +20,11 @@ GET {{url}}/locations/{{idLocation}}
 GET {{url}}/locations/{{idLocation}}/products/{{idProduct}}
 ###
 // crear movimiento (el signo se obtiene de movement_type)
+// Idempotency-Key es obligatoria: la misma llave + mismo payload = replay.
+@keyMov = {{$randomUUID}}
 POST {{url}}
 Content-Type: application/json
+Idempotency-Key: {{keyMov}}
 
 {
     "productId": 1,
@@ -32,9 +35,66 @@ Content-Type: application/json
 }
 
 ###
+// reintentar la MISMA operación: debe responder 200 + Idempotent-Replayed: true
+POST {{url}}
+Content-Type: application/json
+Idempotency-Key: {{keyMov}}
+
+{
+    "productId": 1,
+    "locationId": 2,
+    "movementTypeCode": "ENTRY",
+    "quantity": 5,
+    "note": "Prueba de movimiento"
+}
+
+###
+// misma llave con otro payload: 409 Conflict
+POST {{url}}
+Content-Type: application/json
+Idempotency-Key: {{keyMov}}
+
+{
+    "productId": 1,
+    "locationId": 2,
+    "movementTypeCode": "ENTRY",
+    "quantity": 9,
+    "note": "Payload distinto"
+}
+
+###
+// sin Idempotency-Key: 400 Bad Request
+POST {{url}}
+Content-Type: application/json
+
+{
+    "productId": 1,
+    "locationId": 2,
+    "movementTypeCode": "ENTRY",
+    "quantity": 5
+}
+
+###
+// operación nueva = otra llave (siempre 201)
+POST {{url}}
+Content-Type: application/json
+Idempotency-Key: {{$randomUUID}}
+
+{
+    "productId": 1,
+    "locationId": 2,
+    "movementTypeCode": "ENTRY",
+    "quantity": 5,
+    "note": "Operación distinta"
+}
+
+###
 // crear transferencia atomica (TRANSFER_OUT + TRANSFER_IN)
+// Una sola Idempotency-Key cubre las dos piernas.
+@keyTrf = {{$randomUUID}}
 POST {{url}}/transfer
 Content-Type: application/json
+Idempotency-Key: {{keyTrf}}
 
 {
     "productId": 1,
@@ -43,6 +103,35 @@ Content-Type: application/json
     "quantity": 3,
     "transferId": "TRF-API-001",
     "note": "Transferencia de prueba"
+}
+
+###
+// reintentar la transferencia: 200 + Idempotent-Replayed: true (no toca stock)
+POST {{url}}/transfer
+Content-Type: application/json
+Idempotency-Key: {{keyTrf}}
+
+{
+    "productId": 1,
+    "fromLocationId": 1,
+    "toLocationId": 2,
+    "quantity": 3,
+    "transferId": "TRF-API-001",
+    "note": "Transferencia de prueba"
+}
+
+###
+// transferId ya usado con OTRA llave: 409 Conflict
+POST {{url}}/transfer
+Content-Type: application/json
+Idempotency-Key: {{$randomUUID}}
+
+{
+    "productId": 1,
+    "fromLocationId": 1,
+    "toLocationId": 2,
+    "quantity": 3,
+    "transferId": "TRF-API-001"
 }
 
 ###

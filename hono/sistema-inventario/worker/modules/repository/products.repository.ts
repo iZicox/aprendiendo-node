@@ -5,8 +5,8 @@ import { toOffset } from '../../lib/pagination'
 import type {
   FindAllProducts,
   NewProduct,
-  PaginationQuery,
   Product,
+  ProductQuery,
   UpdateProduct,
 } from '../../db/types'
 
@@ -17,15 +17,28 @@ export class ProductsRepository {
     this.db = db
   }
 
-  async findAll(query: PaginationQuery): Promise<FindAllProducts> {
+  // `search` hace coincidencia parcial por SKU (ya normalizado a mayúsculas
+  // por el validador). instr() evita el problema de % y _ de LIKE.
+  // Coincidencias exactas y por prefijo se ordenan antes que las internas.
+  async findAll(query: ProductQuery): Promise<FindAllProducts> {
+    const search = query.search?.trim() || undefined
+    const where = search ? sql`instr(${product.sku}, ${search}) > 0` : undefined
+
+    const itemsQuery = this.db.select().from(product).where(where)
+    const orderedQuery = search
+      ? itemsQuery.orderBy(
+          sql`case
+            when ${product.sku} = ${search} then 0
+            when substr(${product.sku}, 1, ${search.length}) = ${search} then 1
+            else 2
+          end`,
+          product.sku,
+        )
+      : itemsQuery.orderBy(product.id)
+
     const [items, [{ total }]] = await this.db.batch([
-      this.db
-        .select()
-        .from(product)
-        .orderBy(product.id)
-        .limit(query.pageSize)
-        .offset(toOffset(query)),
-      this.db.select({ total: count() }).from(product),
+      orderedQuery.limit(query.pageSize).offset(toOffset(query)),
+      this.db.select({ total: count() }).from(product).where(where),
     ])
     return { items, total }
   }

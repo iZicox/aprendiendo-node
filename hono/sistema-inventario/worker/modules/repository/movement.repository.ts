@@ -1,13 +1,15 @@
 import type { DrizzleD1Database } from 'drizzle-orm/d1'
-import { movement, stock } from '../../db/schema'
+import { movement, movementOperation, stock } from '../../db/schema'
 import { and, count, desc, eq, sql } from 'drizzle-orm'
 import { toOffset } from '../../lib/pagination'
 import type {
   FindAllMovements,
   MovementSign,
   NewMovement,
+  NewMovementOperation,
   PaginationQuery,
   SelectMovement,
+  SelectMovementOperation,
 } from '../../db/types'
 
 export class MovementRepository {
@@ -105,9 +107,52 @@ export class MovementRepository {
     return Boolean(row)
   }
 
-  async insert(data: NewMovement, sign: MovementSign): Promise<SelectMovement> {
+  // ── Idempotencia ──────────────────────────────────────────
+
+  // (user_id, idempotency_key) es único: dos requests con la misma llave
+  // solo pueden dar de alta una operación.
+  async findOperation(
+    userId: number,
+    idempotencyKey: string,
+  ): Promise<SelectMovementOperation | undefined> {
+    const [row] = await this.db
+      .select()
+      .from(movementOperation)
+      .where(
+        and(
+          eq(movementOperation.userId, userId),
+          eq(movementOperation.idempotencyKey, idempotencyKey),
+        ),
+      )
+      .limit(1)
+    return row
+  }
+
+  // Los movimientos de una operación: 1 en un movimiento simple,
+  // 2 (OUT + IN) en una transferencia.
+  async findMovementsByOperationId(
+    operationId: string,
+  ): Promise<SelectMovement[]> {
+    return this.db
+      .select()
+      .from(movement)
+      .where(eq(movement.operationId, operationId))
+      .orderBy(movement.id)
+  }
+
+  // La operación y su movimiento se insertan en el mismo batch: si algo
+  // falla (stock negativo, FK), la operación no queda registrada y la
+  // llave sigue disponible para reintentar.
+  async insert(
+    operation: NewMovementOperation,
+    data: NewMovement,
+    sign: MovementSign,
+  ): Promise<SelectMovement> {
     // insertar movimiento
-    const insertMovement = this.db.insert(movement).values(data).returning()
+    const insertMovement = this.db
+      .insert(movement)
+      .values({ ...data, operationId: operation.id })
+      .returning()
 
     // confirmar que la fila en stock exista
     const ensureStock = this.db
@@ -129,7 +174,8 @@ export class MovementRepository {
         ),
       )
 
-    const [rows] = await this.db.batch([
+    const [, rows] = await this.db.batch([
+      this.db.insert(movementOperation).values(operation),
       insertMovement,
       ensureStock,
       updateStock,
@@ -138,13 +184,19 @@ export class MovementRepository {
     return rows[0]
   }
 
-  // Las dos piernas de una transferencia se ejecutan en un único batch atómico.
+  // Las dos piernas de una transferencia se ejecutan en un único batch
+  // atómico junto con la operación idempotente.
   async transfer(
+    operation: NewMovementOperation,
     outMovement: NewMovement,
     inMovement: NewMovement,
   ): Promise<[SelectMovement, SelectMovement]> {
-    const [outRows, , , inRows] = await this.db.batch([
-      this.db.insert(movement).values(outMovement).returning(),
+    const [, outRows, , , inRows] = await this.db.batch([
+      this.db.insert(movementOperation).values(operation),
+      this.db
+        .insert(movement)
+        .values({ ...outMovement, operationId: operation.id })
+        .returning(),
       this.db
         .insert(stock)
         .values({
@@ -164,7 +216,10 @@ export class MovementRepository {
             eq(stock.locationId, outMovement.locationId),
           ),
         ),
-      this.db.insert(movement).values(inMovement).returning(),
+      this.db
+        .insert(movement)
+        .values({ ...inMovement, operationId: operation.id })
+        .returning(),
       this.db
         .insert(stock)
         .values({
