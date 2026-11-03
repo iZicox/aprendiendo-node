@@ -38,6 +38,11 @@ export const paginationQuerySchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
 })
 
+// Búsqueda de ubicaciones por código (parcial). Vacío = todas.
+export const locationSearchQuerySchema = paginationQuerySchema.extend({
+  search: z.string().trim().toUpperCase().max(50).optional(),
+})
+
 /**
  * Validadores para Productos
  */

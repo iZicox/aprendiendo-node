@@ -3,7 +3,11 @@ import { LocationService } from '../service/location.service'
 import { drizzle } from 'drizzle-orm/d1'
 import { LocationRepository } from '../repository/location.repository'
 import { zValidator } from '@hono/zod-validator'
-import { createLocationSchema, idParamSchema } from '../validators'
+import {
+  createLocationSchema,
+  idParamSchema,
+  locationSearchQuerySchema,
+} from '../validators'
 import { validationHook } from './validation'
 
 const factory = createFactory<{ Bindings: Env }>()
@@ -17,6 +21,14 @@ function makeService(d1: D1Database): LocationService {
 export const getAll = factory.createHandlers(async (c) => {
   return c.json(await makeService(c.env.DB).getAll())
 })
+
+export const search = factory.createHandlers(
+  zValidator('query', locationSearchQuerySchema, validationHook),
+  async (c) => {
+    const { search: term, ...query } = c.req.valid('query')
+    return c.json(await makeService(c.env.DB).search(term ?? '', query))
+  },
+)
 
 export const getById = factory.createHandlers(
   zValidator('param', idParamSchema, validationHook),

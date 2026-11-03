@@ -3,6 +3,7 @@ import { useInventory } from '../hooks/useInventory'
 import { useLocations } from '../hooks/useLocations'
 import { useStockOverview } from '../hooks/useStockOverview'
 import { formatNumber } from '../lib/format'
+import type { Location } from '../types/api'
 import { Alert } from '../components/ui/Alert'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
@@ -12,23 +13,23 @@ import { PageHeader } from '../components/ui/PageHeader'
 import { Pagination } from '../components/ui/Pagination'
 import { Spinner } from '../components/ui/Spinner'
 import { InventoryTable } from '../components/inventory/InventoryTable'
-import { LocationSummaryCard } from '../components/inventory/LocationSummaryCard'
+import { LocationSearchSelect } from '../components/shared/LocationSearchSelect'
 import { InboxIcon, MapPinIcon, RefreshIcon } from '../components/icons'
 
 const PAGE_SIZE = 20
 
 export function LocationInventoryPage() {
-  const [selectedLocationId, setSelectedLocationId] = useState<number | null>(
-    null,
-  )
+  // Guardamos el objeto completo: así la ubicación elegida sigue visible
+  // aunque no esté en la primera página de resultados de la búsqueda.
+  const [chosenLocation, setChosenLocation] = useState<Location | null>(null)
   const [page, setPage] = useState(1)
   const [includeZero, setIncludeZero] = useState(false)
 
   const locationsState = useLocations()
   const overview = useStockOverview()
 
-  const effectiveSelectedLocationId =
-    selectedLocationId ?? locationsState.locations[0]?.id ?? null
+  const selectedLocation = chosenLocation ?? locationsState.locations[0] ?? null
+  const effectiveSelectedLocationId = selectedLocation?.id ?? null
 
   const inventory = useInventory({
     locationId: effectiveSelectedLocationId,
@@ -38,10 +39,6 @@ export function LocationInventoryPage() {
     enabled: effectiveSelectedLocationId !== null,
   })
 
-  const selectedLocation = locationsState.locations.find(
-    (location) => location.id === effectiveSelectedLocationId,
-  )
-
   const totalByLocation = new Map(
     (overview.data?.byLocation ?? []).map((location) => [
       location.locationId,
@@ -49,8 +46,8 @@ export function LocationInventoryPage() {
     ]),
   )
 
-  function handleSelectLocation(locationId: number) {
-    setSelectedLocationId(locationId)
+  function handleSelectLocation(location: Location) {
+    setChosenLocation(location)
     setPage(1)
   }
 
@@ -121,16 +118,15 @@ export function LocationInventoryPage() {
             />
           </Card>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {locationsState.locations.map((location) => (
-              <LocationSummaryCard
-                key={location.id}
-                location={location}
-                total={totalByLocation.get(location.id) ?? 0}
-                active={location.id === effectiveSelectedLocationId}
-                onClick={() => handleSelectLocation(location.id)}
-              />
-            ))}
+          <div className="max-w-md">
+            <LocationSearchSelect
+              id="inventory-location"
+              value={selectedLocation}
+              onChange={(location) => {
+                // Si el usuario solo está escribiendo, se conserva la selección actual.
+                if (location) handleSelectLocation(location)
+              }}
+            />
           </div>
         )}
       </section>

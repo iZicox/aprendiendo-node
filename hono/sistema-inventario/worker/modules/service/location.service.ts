@@ -1,6 +1,12 @@
-import type { InsertLocation, SelectLocation } from '../../db/types'
+import type {
+  InsertLocation,
+  Page,
+  PaginationQuery,
+  SelectLocation,
+} from '../../db/types'
 import { isForeignKeyViolation, isUniqueViolation } from '../../lib/db-errors'
 import { ConflictError, NotFoundError } from '../../lib/errors'
+import { toPage } from '../../lib/pagination'
 import { LocationRepository } from '../repository/location.repository'
 
 export class LocationService {
@@ -8,6 +14,18 @@ export class LocationService {
 
   constructor(repo: LocationRepository) {
     this.repo = repo
+  }
+
+  async search(
+    term: string,
+    query: PaginationQuery,
+  ): Promise<Page<SelectLocation>> {
+    const { items, total } = await this.repo.search(
+      term,
+      query.page,
+      query.pageSize,
+    )
+    return toPage(items, total, query)
   }
 
   async getAll(): Promise<SelectLocation[]> {
