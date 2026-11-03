@@ -86,33 +86,37 @@ export function Sidebar({
             </p>
 
             <div className="space-y-1">
-              {group.items.map((item) => {
-                const Icon = item.icon
+              {group.items
+                .filter((item) => !item.adminOnly || user?.role === 'admin')
+                .map((item) => {
+                  const Icon = item.icon
 
-                return (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    end={item.end}
-                    onClick={onCloseMobile}
-                    title={collapsed ? item.label : undefined}
-                    className={({ isActive }) =>
-                      cn(
-                        'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition',
-                        isActive
-                          ? 'bg-indigo-500/15 text-white ring-1 ring-inset ring-indigo-400/20'
-                          : 'text-slate-400 hover:bg-white/5 hover:text-white',
-                        collapsed && 'lg:justify-center lg:px-2',
-                      )
-                    }
-                  >
-                    <Icon className="h-5 w-5 shrink-0" />
-                    <span className={cn('truncate', collapsed && 'lg:hidden')}>
-                      {item.label}
-                    </span>
-                  </NavLink>
-                )
-              })}
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      end={item.end}
+                      onClick={onCloseMobile}
+                      title={collapsed ? item.label : undefined}
+                      className={({ isActive }) =>
+                        cn(
+                          'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition',
+                          isActive
+                            ? 'bg-indigo-500/15 text-white ring-1 ring-inset ring-indigo-400/20'
+                            : 'text-slate-400 hover:bg-white/5 hover:text-white',
+                          collapsed && 'lg:justify-center lg:px-2',
+                        )
+                      }
+                    >
+                      <Icon className="h-5 w-5 shrink-0" />
+                      <span
+                        className={cn('truncate', collapsed && 'lg:hidden')}
+                      >
+                        {item.label}
+                      </span>
+                    </NavLink>
+                  )
+                })}
             </div>
           </div>
         ))}

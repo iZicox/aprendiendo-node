@@ -12,6 +12,8 @@ export interface NavItem {
   to: string
   icon: ComponentType<{ className?: string }>
   end?: boolean
+  // Solo lo ven los administradores (el backend también lo exige).
+  adminOnly?: boolean
 }
 
 export interface NavGroup {
@@ -59,6 +61,12 @@ export const NAV_GROUPS: NavGroup[] = [
         to: '/traslados/nuevo',
         icon: ArrowsRightLeftIcon,
       },
+      {
+        label: 'Gestionar ubicaciones',
+        to: '/ubicaciones/gestionar',
+        icon: MapPinIcon,
+        adminOnly: true,
+      },
     ],
   },
 ]
@@ -92,6 +100,10 @@ const PAGE_META: Record<string, PageMeta> = {
   '/traslados/nuevo': {
     title: 'Registrar traslado',
     subtitle: 'Mueve stock entre ubicaciones de forma atómica',
+  },
+  '/ubicaciones/gestionar': {
+    title: 'Gestionar ubicaciones',
+    subtitle: 'Crea y elimina las sedes donde se guarda el stock',
   },
 }
 
