@@ -1,10 +1,18 @@
+import { Navigate } from 'react-router-dom'
+import { useAuth } from '../auth/useAuth'
 import { useProducts } from '../hooks/useProducts'
 import { PageHeader } from '../components/ui/PageHeader'
 import { ProductCatalog } from '../components/products/ProductCatalog'
 import { ProductForm } from '../components/products/ProductForm'
 
 export function CreateProductPage() {
+  const { user } = useAuth()
   const { products, loading, error, reload } = useProducts()
+
+  // Crear productos es solo para administradores (el backend también lo exige).
+  if (user && user.role !== 'admin') {
+    return <Navigate to="/inventario" replace />
+  }
 
   return (
     <div className="space-y-6">

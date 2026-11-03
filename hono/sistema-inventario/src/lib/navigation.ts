@@ -50,6 +50,7 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Crear producto',
         to: '/productos/nuevo',
         icon: BoxIcon,
+        adminOnly: true,
       },
       {
         label: 'Crear movimiento',
