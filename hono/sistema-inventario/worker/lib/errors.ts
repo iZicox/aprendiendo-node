@@ -9,13 +9,30 @@ export class ConflictError extends Error {}
 export class UnauthorizedError extends Error {}
 export class ForbiddenError extends Error {}
 
+// El rate limit superado: `retryAfterSeconds` es la ventana del binding
+// (la API no devuelve cuánto falta, solo `success`, así que informamos de
+// la ventana completa como aproximación).
+export class RateLimitError extends Error {
+  readonly retryAfterSeconds: number
+
+  constructor(retryAfterSeconds: number) {
+    super('Demasiadas solicitudes')
+    this.retryAfterSeconds = retryAfterSeconds
+  }
+}
+
 // Traduce cada error a una respuesta HTTP con formato JSON uniforme.
 export const errorHandler: ErrorHandler = (err, c) => {
   if (err instanceof BadRequestError) return c.json({ error: err.message }, 400)
-  if (err instanceof UnauthorizedError) return c.json({ error: err.message }, 401)
-  if (err instanceof ForbiddenError) return c.json({ error: err.message }, 403) 
+  if (err instanceof UnauthorizedError)
+    return c.json({ error: err.message }, 401)
+  if (err instanceof ForbiddenError) return c.json({ error: err.message }, 403)
   if (err instanceof NotFoundError) return c.json({ error: err.message }, 404)
   if (err instanceof ConflictError) return c.json({ error: err.message }, 409)
+  if (err instanceof RateLimitError) {
+    c.header('Retry-After', String(err.retryAfterSeconds))
+    return c.json({ error: err.message }, 429)
+  }
 
   // Errores lanzados por Hono o sus middlewares (401, 403...)
   if (err instanceof HTTPException) return err.getResponse()
