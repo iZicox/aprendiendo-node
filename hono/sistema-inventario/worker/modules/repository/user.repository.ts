@@ -1,6 +1,6 @@
 import { DrizzleD1Database } from "drizzle-orm/d1";
 import { users } from "../../db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { CreateUserInput, UserRole } from "../../db/types";
 
 
@@ -27,11 +27,34 @@ export class UserRepository{
                 email: users.email,
                 passwordHash: users.passwordHash,
                 role: users.role,
+                tokenVersion: users.tokenVersion,
             })
             .from(users)
             .where(eq(users.email, email))
             .limit(1)
         return row ?? null
+    }
+
+    // Estado que valida cada access token: rol y versión actuales.
+    async findAuthState(id: number){
+        const [row] = await this.db
+            .select({
+                id: users.id,
+                role: users.role,
+                tokenVersion: users.tokenVersion,
+            })
+            .from(users)
+            .where(eq(users.id, id))
+            .limit(1)
+        return row ?? null
+    }
+
+    // Invalida todos los access tokens emitidos hasta ahora.
+    async bumpTokenVersion(id: number): Promise<void> {
+        await this.db
+            .update(users)
+            .set({ tokenVersion: sql`${users.tokenVersion} + 1` })
+            .where(eq(users.id, id))
     }
 
     // obtener por id con datos publicos sin hash

@@ -22,6 +22,7 @@ export interface AuthConfig {
 export interface AccessTokenPayload {
     sub: string; // id del usuario
     role: UserRole;
+    tv: number; // versión de tokens del usuario en el momento de emitir
     iat: number;
     exp: number;
 }
@@ -156,6 +157,7 @@ export class AuthService {
         const session = await this.issueSession(
             user.id,
             user.role,
+            user.tokenVersion,
             crypto.randomUUID(),
         );
         return {
@@ -190,7 +192,7 @@ export class AuthService {
             throw new UnauthorizedError("Sesión inválida o expirada");
         }
 
-        const user = await this.users.findById(stored.userId);
+        const user = await this.users.findAuthState(stored.userId);
         if (!user) {
             throw new UnauthorizedError("Sesión inválida o expirada");
         }
@@ -200,7 +202,12 @@ export class AuthService {
         await this.pruneExpiredRefreshTokens();
 
         // Mismo familyId: la cadena de rotación continúa.
-        return this.issueSession(user.id, user.role, stored.familyId);
+        return this.issueSession(
+            user.id,
+            user.role,
+            user.tokenVersion,
+            stored.familyId,
+        );
     }
 
     private async pruneExpiredRefreshTokens(): Promise<void> {
@@ -229,6 +236,7 @@ export class AuthService {
 
     // --- Logout en todos los dispositivos ---
     async logoutAll(userId: number): Promise<void> {
+        await this.users.bumpTokenVersion(userId);
         await this.refreshTokens.revokeAllForUser(userId);
     }
 
@@ -255,7 +263,8 @@ export class AuthService {
         const newHash = await this.hashPassword(newPassword);
         await this.users.updatePassword(userId, newHash);
 
-        // Cerramos todas las sesiones existentes tras cambiar la contraseña.
+        // Invalida los access tokens activos y cierra todas las sesiones.
+        await this.users.bumpTokenVersion(userId);
         await this.refreshTokens.revokeAllForUser(userId);
     }
 
@@ -291,12 +300,19 @@ export class AuthService {
     private async issueSession(
         userId: number,
         role: UserRole,
+        tokenVersion: number,
         familyId: string,
     ): Promise<Session> {
         const now = Math.floor(Date.now() / 1000);
 
         const accessToken = await sign(
-            { sub: String(userId), role, iat: now, exp: now + this.accessTtl },
+            {
+                sub: String(userId),
+                role,
+                tv: tokenVersion,
+                iat: now,
+                exp: now + this.accessTtl,
+            },
             this.config.jwtSecret,
             "HS256",
         );

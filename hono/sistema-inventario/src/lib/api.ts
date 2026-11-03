@@ -4,6 +4,14 @@ const API_BASE = '/api'
 
 export const AUTH_EXPIRED_EVENT = 'inventory:auth-expired'
 
+// El access token vive solo en memoria: no se guarda en localStorage (un XSS
+// podría leerlo). Al recargar la página se recupera con el refresh cookie.
+let accessToken: string | null = null
+
+export function setAccessToken(token: string | null): void {
+  accessToken = token
+}
+
 export class ApiError extends Error {
   readonly status: number
   readonly details: ApiErrorPayload['details']
@@ -48,6 +56,10 @@ async function rawRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
     headers.set('Content-Type', 'application/json')
   }
 
+  if (accessToken && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${accessToken}`)
+  }
+
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers,
@@ -74,7 +86,10 @@ let refreshPromise: Promise<boolean> | null = null
 async function refreshWithLock(): Promise<boolean> {
   const task = async () => {
     try {
-      await rawRequest<{ ok: boolean }>('/auth/refresh', { method: 'POST' })
+      const data = await rawRequest<{ accessToken: string }>('/auth/refresh', {
+        method: 'POST',
+      })
+      setAccessToken(data.accessToken)
       return true
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {

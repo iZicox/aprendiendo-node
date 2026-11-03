@@ -118,6 +118,9 @@ export const users = sqliteTable(
     id: integer('id').primaryKey({ autoIncrement: true }),
     email: text('email').notNull().unique(),
     passwordHash: text('password_hash').notNull(),
+    // Se incrementa al cambiar contraseña o cerrar sesión en todos los
+    // dispositivos: los access tokens con una versión anterior dejan de valer.
+    tokenVersion: integer('token_version').notNull().default(0),
     role: text('role', { enum: ['admin', 'user'] })
       .notNull()
       .default('user'),
