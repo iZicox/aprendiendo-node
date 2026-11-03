@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "mi-app",
+  "name": "sistema-inventario",
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-01",
   "assets": {
@@ -14,7 +14,7 @@
     {
       "binding": "DB",
       "database_name": "inventario",
-      "database_id": "c6e1e262-cc78-494e-93f8-c16c34e3551a",
+      "database_id": "4b7ea76c-5a9d-4521-b2a2-c23f81a22cd8",
       "migrations_dir": "migrations",
     },
   ],
@@ -44,10 +44,9 @@
     },
   ],
   "vars": {
-    // 'true' abre POST /auth/register. En producción queda en 'false' y en
-    // local lo sobrescribe `.dev.vars` (ver README 11.3 para el alta del
-    // primer administrador).
-    "ALLOW_REGISTRATION": "false",
+    // 'true' abre POST /auth/register, que crea siempre usuarios con rol
+    // 'user'. Los administradores se asignan con `npm run admin:promote`.
+    "ALLOW_REGISTRATION": "true",
   },
   "secrets": {
     "required": ["JWT_SECRET"],

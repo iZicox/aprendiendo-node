@@ -1,12 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import { apiRequest, AUTH_EXPIRED_EVENT, refreshSession } from '../lib/api'
+import {
+  apiRequest,
+  AUTH_EXPIRED_EVENT,
+  refreshSession,
+  setAccessToken,
+} from '../lib/api'
 import type { AuthUser } from '../types/api'
 import { AuthContext } from './auth-context'
 import type { AuthStatus } from './auth-context'
 
 interface AuthResponse {
   user: AuthUser
+  accessToken?: string
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -15,6 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [notice, setNotice] = useState<string | null>(null)
 
   const clearSession = useCallback(() => {
+    setAccessToken(null)
     setUser(null)
     setStatus('anonymous')
   }, [])
@@ -80,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       skipAuthRefresh: true,
     })
 
+    setAccessToken(data.accessToken ?? null)
     setUser(data.user)
     setStatus('authenticated')
   }, [])

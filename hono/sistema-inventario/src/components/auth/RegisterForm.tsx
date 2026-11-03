@@ -47,11 +47,6 @@ export function RegisterForm() {
 
   return (
     <form onSubmit={(event) => void handleSubmit(event)} className="space-y-5">
-      <Alert variant="info" title="Solo para desarrollo">
-        Este formulario crea un usuario con rol <strong>user</strong>. Para
-        probar funciones de administrador, promuévelo desde D1.
-      </Alert>
-
       {error && (
         <Alert variant="error" title="No pudimos crear la cuenta">
           {error}

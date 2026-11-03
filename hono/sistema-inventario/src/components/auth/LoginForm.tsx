@@ -89,17 +89,15 @@ export function LoginForm() {
         Entrar al panel
       </Button>
 
-      {import.meta.env.DEV && (
-        <p className="text-center text-sm text-slate-500">
-          ¿Primera vez en local?{' '}
-          <Link
-            to="/registro"
-            className="font-semibold text-indigo-600 hover:text-indigo-500"
-          >
-            Crear usuario de prueba
-          </Link>
-        </p>
-      )}
+      <p className="text-center text-sm text-slate-500">
+        ¿No tienes cuenta?{' '}
+        <Link
+          to="/registro"
+          className="font-semibold text-indigo-600 hover:text-indigo-500"
+        >
+          Regístrate
+        </Link>
+      </p>
     </form>
   )
 }

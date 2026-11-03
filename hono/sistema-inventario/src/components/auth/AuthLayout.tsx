@@ -5,7 +5,7 @@ interface AuthLayoutProps {
   title: string
   description: string
   children: ReactNode
-  footer: ReactNode
+  footer?: ReactNode
 }
 
 const features = [
@@ -96,7 +96,7 @@ export function AuthLayout({
 
           <div className="mt-8">{children}</div>
 
-          <div className="mt-6">{footer}</div>
+          {footer && <div className="mt-6">{footer}</div>}
 
           <p className="mt-8 text-center text-xs text-slate-400">
             Tus credenciales viajan en cookies HttpOnly.

@@ -1,12 +1,11 @@
-# Cabeceras para los assets estáticos (React, favicon...). Las respuestas de
-# /api/* las pone el Worker con `secureHeaders()`; estas son las que sirve
-# directamente el sistema de assets de Cloudflare.
-# Documentación: https://developers.cloudflare.com/workers/static-assets/headers
+# Cabeceras de seguridad para los assets estáticos (la SPA y sus archivos).
+# Las respuestas de /api/* las pone el middleware secureHeaders() del worker.
 
 /*
-  Strict-Transport-Security: max-age=15552000; includeSubDomains
+  X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
-  X-Frame-Options: SAMEORIGIN
-  Referrer-Policy: no-referrer
-  X-XSS-Protection: 0
-  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Strict-Transport-Security: max-age=31536000
+  Cross-Origin-Opener-Policy: same-origin
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'

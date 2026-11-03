@@ -16,9 +16,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
 
-      {import.meta.env.DEV && (
-        <Route path="/registro" element={<RegisterPage />} />
-      )}
+      <Route path="/registro" element={<RegisterPage />} />
 
       <Route
         element={
