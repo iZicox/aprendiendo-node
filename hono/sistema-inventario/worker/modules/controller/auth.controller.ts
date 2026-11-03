@@ -5,7 +5,7 @@ import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import { createFactory } from 'hono/factory'
 
 import { UnauthorizedError } from '../../lib/errors'
-import { BcryptPasswordHasher } from '../../security/bcrypt-password-hasher'
+import { Pbkdf2PasswordHasher } from '../../security/pbkdf2-password-hasher'
 import type { AuthEnv } from '../../types'
 import { RefreshTokenRepository } from '../repository/refreshTokens.repository'
 import { UserRepository } from '../repository/user.repository'
@@ -40,7 +40,7 @@ function makeService(d1: D1Database, jwtSecret: string): AuthService {
   return new AuthService(
     users,
     refreshTokens,
-    new BcryptPasswordHasher(10),
+    new Pbkdf2PasswordHasher(),
     { jwtSecret },
   )
 }

@@ -168,7 +168,9 @@ export const stockPaginationQuerySchema = paginationQuerySchema.extend({
 /**
  * Validadores para la autenticacion
  */
-// El límite de bcrypt es en bytes UTF-8, no en caracteres.
+// Límite de longitud en bytes UTF-8 (no en caracteres). PBKDF2 no tiene la
+// restricción de 72 bytes que tenía bcrypt, pero se mantiene una cota para
+// descartar entradas absurdas; es una decisión de política, no técnica.
 const registerPasswordSchema = z
   .string()
   .min(8, 'La contraseña debe tener al menos 8 caracteres')

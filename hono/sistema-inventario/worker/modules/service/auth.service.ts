@@ -62,6 +62,21 @@ async function sha256Hex(value: string): Promise<string> {
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
+// Hash falso para igualar el tiempo de respuesta cuando el email no existe.
+// Se memoiza a nivel de módulo (una vez por isolate, no por request): AuthService
+// se instancia en cada request, así que un caché por instancia forzaría un
+// PBKDF2 completo en cada intento de login con email inexistente.
+//
+// Suposición: todos los AuthService comparten el mismo PasswordHasher (así es
+// en auth.controller). Si se mezclan hasheers con costes distintos, el dummy
+// conserva el coste con el que se calculó por primera vez.
+let dummyHashPromise: Promise<string> | null = null;
+
+function getDummyHash(hasher: PasswordHasher): Promise<string> {
+    dummyHashPromise ??= hasher.hash(randomToken(16));
+    return dummyHashPromise;
+}
+
 // ---------- Servicio ----------
 
 export class AuthService {
@@ -71,7 +86,6 @@ export class AuthService {
     private readonly config: AuthConfig;
     private readonly accessTtl: number;
     private readonly refreshTtl: number;
-    private dummyHash: Promise<string> | null = null;
 
     constructor(
         users: UserRepository,
@@ -124,7 +138,9 @@ export class AuthService {
 
         // Si el usuario no existe, comparamos contra un hash falso para que el
         // tiempo de respuesta no revele qué emails están registrados.
-        const hashToCompare = user ? user.passwordHash : await this.getDummyHash();
+        const hashToCompare = user
+            ? user.passwordHash
+            : await getDummyHash(this.hasher);
         const valid = await this.hasher.verify(password, hashToCompare);
 
         if (!user || !valid) {
@@ -281,10 +297,5 @@ export class AuthService {
                 err instanceof Error ? err.message : "Contraseña no válida",
             );
         }
-    }
-
-    private getDummyHash(): Promise<string> {
-        this.dummyHash ??= this.hasher.hash(randomToken(16));
-        return this.dummyHash;
     }
 }
