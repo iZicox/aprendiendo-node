@@ -1,0 +1,12 @@
+# Cabeceras para los assets estáticos (React, favicon...). Las respuestas de
+# /api/* las pone el Worker con `secureHeaders()`; estas son las que sirve
+# directamente el sistema de assets de Cloudflare.
+# Documentación: https://developers.cloudflare.com/workers/static-assets/headers
+
+/*
+  Strict-Transport-Security: max-age=15552000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: no-referrer
+  X-XSS-Protection: 0
+  Permissions-Policy: camera=(), microphone=(), geolocation=()

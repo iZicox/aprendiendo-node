@@ -2,9 +2,9 @@ import { zValidator } from '@hono/zod-validator'
 import { drizzle } from 'drizzle-orm/d1'
 import type { Context } from 'hono'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
-import { createFactory } from 'hono/factory'
+import { createFactory, createMiddleware } from 'hono/factory'
 
-import { UnauthorizedError } from '../../lib/errors'
+import { ForbiddenError, UnauthorizedError } from '../../lib/errors'
 import { Pbkdf2PasswordHasher } from '../../security/pbkdf2-password-hasher'
 import type { AuthEnv } from '../../types'
 import { RefreshTokenRepository } from '../repository/refreshTokens.repository'
@@ -82,7 +82,20 @@ function clearAuthCookies(c: Context<AuthEnv>) {
   })
 }
 
+// El registro está cerrado por defecto: solo se abre si la variable
+// ALLOW_REGISTRATION='true' (en local, `.dev.vars`; en producción, una var
+// temporal que se retira tras el alta del primer administrador).
+const registrationEnabled = createMiddleware<AuthEnv>(async (c, next) => {
+  if (c.env.ALLOW_REGISTRATION !== 'true') {
+    throw new ForbiddenError(
+      'Registro deshabilitado. Contacta al administrador',
+    )
+  }
+  await next()
+})
+
 export const register = factory.createHandlers(
+  registrationEnabled,
   zValidator('json', registerSchema, validationHook),
   async (c) => {
     const { email, password } = c.req.valid('json')

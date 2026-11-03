@@ -13,8 +13,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "d1-local-con-drizzle",
-      "database_id": "PEGA-AQUI-EL-ID",
+      "database_name": "inventario",
+      "database_id": "c6e1e262-cc78-494e-93f8-c16c34e3551a",
       "migrations_dir": "migrations",
     },
   ],
@@ -43,6 +43,12 @@
       "simple": { "limit": 300, "period": 60 },
     },
   ],
+  "vars": {
+    // 'true' abre POST /auth/register. En producción queda en 'false' y en
+    // local lo sobrescribe `.dev.vars` (ver README 11.3 para el alta del
+    // primer administrador).
+    "ALLOW_REGISTRATION": "false",
+  },
   "secrets": {
     "required": ["JWT_SECRET"],
   },

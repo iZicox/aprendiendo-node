@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { secureHeaders } from 'hono/secure-headers'
 import { errorHandler } from './lib/errors'
 import {
   authMiddleware,
@@ -26,6 +27,9 @@ const apiLimit = rateLimit((c) => c.env.RL_API, userKey, 60)
 
 const api = new Hono<AuthEnv>()
   .basePath('/api')
+  // Cabeceras de seguridad (HSTS, X-Frame-Options, nosniff...). Va lo primero:
+  // en Hono un `.use()` registrado después de un `.route()` no se ejecuta.
+  .use('*', secureHeaders())
   // Públicas: login, refresh y logout usan su propia cookie.
   // El rate limit va ANTES de montar las rutas: en Hono un `.use()`
   // registrado después de un `.route()` no se ejecuta para esa ruta.

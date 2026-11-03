@@ -38,6 +38,12 @@ export const REFRESH_TTL_SECONDS = 30 * 24 * 60 * 60;
 const MIN_PASSWORD_LENGTH = 8;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// La poda de refresh tokens expirados se lanza desde refresh() como mucho una
+// vez cada PRUNE_INTERVAL_MS: el servicio se crea en cada petición, así que el
+// contador tiene que vivir a nivel de módulo.
+const PRUNE_INTERVAL_MS = 10 * 60 * 1000;
+let lastPruneAt = 0;
+
 // ---------- Utilidades ----------
 
 function randomToken(bytes = 32): string {
@@ -189,8 +195,27 @@ export class AuthService {
             throw new UnauthorizedError("Sesión inválida o expirada");
         }
 
+        // De paso, podamos los refresh tokens expirados (nadie más lo hace).
+        // Mantenimiento best effort: si falla, no interrumpimos el refresh.
+        await this.pruneExpiredRefreshTokens();
+
         // Mismo familyId: la cadena de rotación continúa.
         return this.issueSession(user.id, user.role, stored.familyId);
+    }
+
+    private async pruneExpiredRefreshTokens(): Promise<void> {
+        const now = Date.now();
+        if (now - lastPruneAt < PRUNE_INTERVAL_MS) return;
+        lastPruneAt = now;
+
+        try {
+            await this.refreshTokens.deleteExpired();
+        } catch (err) {
+            console.error(
+                "No se pudieron podar los refresh tokens expirados",
+                err,
+            );
+        }
     }
 
     // --- Logout (dispositivo actual). Idempotente: nunca falla por token desconocido. ---
