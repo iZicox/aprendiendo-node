@@ -9,11 +9,7 @@ import { Pbkdf2PasswordHasher } from '../../security/pbkdf2-password-hasher'
 import type { AuthEnv } from '../../types'
 import { RefreshTokenRepository } from '../repository/refreshTokens.repository'
 import { UserRepository } from '../repository/user.repository'
-import {
-  ACCESS_TTL_SECONDS,
-  AuthService,
-  type Session,
-} from '../service/auth.service'
+import { AuthService, type Session } from '../service/auth.service'
 import {
   changePasswordSchema,
   loginSchema,
@@ -23,9 +19,9 @@ import { validationHook } from './validation'
 
 const factory = createFactory<AuthEnv>()
 
-const ACCESS_COOKIE = 'access_token'
+// Solo el refresh token va en cookie (httpOnly: el JS no lo puede leer). El
+// access token se devuelve en el body y viaja como Bearer.
 const REFRESH_COOKIE = 'refresh_token'
-const ACCESS_COOKIE_PATH = '/api'
 const REFRESH_COOKIE_PATH = '/api/auth'
 
 function makeService(d1: D1Database, jwtSecret: string): AuthService {
@@ -49,16 +45,8 @@ function isSecure(c: Context<AuthEnv>): boolean {
   return new URL(c.req.url).protocol === 'https:'
 }
 
-function setAuthCookies(c: Context<AuthEnv>, session: Session) {
+function setRefreshCookie(c: Context<AuthEnv>, session: Session) {
   const secure = isSecure(c)
-
-  setCookie(c, ACCESS_COOKIE, session.accessToken, {
-    httpOnly: true,
-    secure,
-    sameSite: 'Lax',
-    path: ACCESS_COOKIE_PATH,
-    maxAge: ACCESS_TTL_SECONDS,
-  })
 
   setCookie(c, REFRESH_COOKIE, session.refreshToken, {
     httpOnly: true,
@@ -69,13 +57,9 @@ function setAuthCookies(c: Context<AuthEnv>, session: Session) {
   })
 }
 
-function clearAuthCookies(c: Context<AuthEnv>) {
+function clearRefreshCookie(c: Context<AuthEnv>) {
   const secure = isSecure(c)
 
-  deleteCookie(c, ACCESS_COOKIE, {
-    path: ACCESS_COOKIE_PATH,
-    secure,
-  })
   deleteCookie(c, REFRESH_COOKIE, {
     path: REFRESH_COOKIE_PATH,
     secure,
@@ -117,8 +101,8 @@ export const login = factory.createHandlers(
       c.env.JWT_SECRET,
     ).login(email, password)
 
-    setAuthCookies(c, session)
-    return c.json({ user })
+    setRefreshCookie(c, session)
+    return c.json({ user, accessToken: session.accessToken })
   },
 )
 
@@ -128,10 +112,10 @@ export const refresh = factory.createHandlers(async (c) => {
 
   try {
     const session = await makeService(c.env.DB, c.env.JWT_SECRET).refresh(raw)
-    setAuthCookies(c, session)
-    return c.json({ ok: true })
+    setRefreshCookie(c, session)
+    return c.json({ accessToken: session.accessToken })
   } catch (err) {
-    clearAuthCookies(c)
+    clearRefreshCookie(c)
     throw err
   }
 })
@@ -140,7 +124,7 @@ export const logout = factory.createHandlers(async (c) => {
   await makeService(c.env.DB, c.env.JWT_SECRET).logout(
     getCookie(c, REFRESH_COOKIE),
   )
-  clearAuthCookies(c)
+  clearRefreshCookie(c)
   return c.body(null, 204)
 })
 
@@ -165,7 +149,7 @@ export const changePassword = factory.createHandlers(
       newPassword,
     )
 
-    clearAuthCookies(c)
+    clearRefreshCookie(c)
     return c.body(null, 204)
   },
 )
@@ -174,6 +158,6 @@ export const logoutAll = factory.createHandlers(async (c) => {
   const { sub } = c.get('user')
   await makeService(c.env.DB, c.env.JWT_SECRET).logoutAll(Number(sub))
 
-  clearAuthCookies(c)
+  clearRefreshCookie(c)
   return c.body(null, 204)
 })

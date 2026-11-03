@@ -15,6 +15,9 @@ const CODE_PATTERN = /^[A-Z0-9._-]+$/
 const CODE_MESSAGE =
   'Solo se permiten letras, números, punto, guion y guion bajo'
 const NOTE_MAX_LENGTH = 500
+// Cota de cantidad por movimiento: evita valores que no caben con precisión en
+// un número de JavaScript y stocks absurdos por error de tecleo.
+const MAX_QUANTITY = 1_000_000_000
 
 // universal string code schema upper case
 export const codeParamSchema = z.object({
@@ -117,7 +120,7 @@ export const createMovementSchema = z.object({
     .min(1)
     .max(50)
     .regex(CODE_PATTERN, CODE_MESSAGE),
-  quantity: z.coerce.number().int().positive(),
+  quantity: z.coerce.number().int().positive().max(MAX_QUANTITY),
   note: z.string().trim().min(1).max(NOTE_MAX_LENGTH).optional(),
 })
 
@@ -127,7 +130,7 @@ export const createTransferSchema = z
     productId: z.coerce.number().int().positive(),
     fromLocationId: z.coerce.number().int().positive(),
     toLocationId: z.coerce.number().int().positive(),
-    quantity: z.coerce.number().int().positive(),
+    quantity: z.coerce.number().int().positive().max(MAX_QUANTITY),
     transferId: z
       .string()
       .trim()
