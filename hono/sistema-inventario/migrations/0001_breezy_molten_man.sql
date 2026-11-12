@@ -1,1 +1,0 @@
-ALTER TABLE `movement` ADD `transfer_id` text;
