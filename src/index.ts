@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import { JWT_SECRET, requireAuth } from "./auth"
 import crypto from "crypto"
+import path from "path"
 
 const ACCESS_TOKEN_DURATION = 15 * 60 * 1000 // 15min
 const REFRESH_TOKEN_DURATION = 7 * 24 * 60 * 60 * 1000 // 7d
@@ -54,6 +55,10 @@ function setAuthCookies(res: Response, accessToken: string, refreshToken: string
 
 // inicializa la app
 const app = express()
+
+//agregar la vista con plantillas
+app.set("view engine", "ejs")
+app.set("views", path.join(__dirname, "views"))
 
 // middleware de lectura de json
 app.use(express.json())
@@ -206,6 +211,10 @@ app.post("/logout", (req, res) => {
     res.clearCookie("accessToken")
     res.clearCookie("refreshToken")
     res.json({ message: "Sesion cerrada" })
+})
+
+app.get("/", (req, res) => {
+    res.render("index")
 })
 
 app.listen(3000, () => {
