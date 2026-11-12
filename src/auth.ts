@@ -9,7 +9,7 @@ export const JWT_SECRET = "clave-secreta";
 export function requireAuth(req: Request, res: Response, next: NextFunction){
     
     // leemos la cookie
-    const token = req.cookies.token
+    const token = req.cookies.accessToken
     // verificamos si existe la cookie
     if(!token){
         res.status(401).json({error: "No haz iniciado sesion"})

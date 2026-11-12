@@ -1,10 +1,31 @@
 import cookieParser from "cookie-parser"
 import express from "express"
-import { readUsers, saveUsers } from "./db"
+import { readSessions, readUsers, saveUsers, User } from "./db"
 import bcrypt from "bcryptjs"
 import e from "express"
 import jwt from "jsonwebtoken"
 import { JWT_SECRET, requireAuth } from "./auth"
+import crypto from "crypto"
+
+const ACCESS_TOKEN_DURATION = 15 * 60 * 1000 // 15min
+const REFRESH_TOKEN_DURATION = 7 * 24 * 60 * 60 * 1000 // 7d
+
+// crear access token (corto)
+function createAccessToken(userId: number){
+    return jwt.sign({userId: userId}, JWT_SECRET, { expiresIn: "15m" })
+}
+// crear refresh token (largo)
+function createRefreshToken(userId: number){
+    // crear un id aleatorio para el refresh token
+    const token = crypto.randomBytes(32).toString("hex")
+
+    const sessions = readSessions()
+    sessions.push({
+        token: token,
+        UserId: userId,
+        expiresAt: Date.now() + REFRESH_TOKEN_DURATION
+    })
+}
 
 // inicializa la app
 const app = express()
