@@ -24,27 +24,27 @@ const app = new Hono<{ Bindings: CloudflareBindings }>()
 
 donde se guardan las migraciones que genera drizzle
 
-## controller
+## src/controller
 
 clase que consume el repositorio y gestiona la logica, control de errores y gentiona las request y response http
 
-## repository
+## src/repository
 
 clases que gestiona las consultas de la tabla y acceso a la base de datos sin logica
 
-## middleware
+## src/middleware
 
 capa intermedia para cros o auth
 
-## route
+## src/route
 
 mapeo de las rutas y que controlador implementa
 
-## schema
+## src/schema
 
 validacion de los body con zod
 
-## db
+## src/db
 
 donde se guarda las clases que mapean las tablas para generar el script sql
 
