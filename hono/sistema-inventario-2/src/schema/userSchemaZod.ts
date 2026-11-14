@@ -16,7 +16,8 @@ export const createUserSchemeBody = z.object({
 })
 
 export const passwordSchemeBody = z.object({
-  password: passwordScheme,
+  oldPassword: passwordScheme,
+  newPassword: passwordScheme
 })
 
 export const roleSchemeBody = z.object({

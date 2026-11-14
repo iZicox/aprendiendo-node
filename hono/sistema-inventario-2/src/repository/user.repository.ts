@@ -41,7 +41,7 @@ export class UserRepository {
         passwordHash: data.passwordHash,
         role: data.role ?? "user",
       })
-      .returning()
+      .returning({ ...fields })
 
     return user ?? null
   }

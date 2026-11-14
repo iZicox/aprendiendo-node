@@ -8,6 +8,7 @@ import {
   emailSchemaParam,
   idSchemaParam,
   passwordSchemeBody,
+  roleSchemeBody,
 } from "../schema/userSchemaZod"
 import bcrypt from "bcryptjs"
 
@@ -23,6 +24,9 @@ export const getUserById = factory.createHandlers(
   zValidator("param", idSchemaParam),
   async (c) => {
     const { id } = c.req.valid("param")
+    if (!id) {
+      return c.json({ error: "campo del id vacio" }, 400)
+    }
     const user = await makeService(c.env.DB).findById(id)
     if (!user) {
       return c.json({ error: "Usuario no encontrado" }, 404)
@@ -35,6 +39,9 @@ export const getUserByEmail = factory.createHandlers(
   zValidator("json", emailSchemaParam),
   async (c) => {
     const { email } = c.req.valid("json")
+    if (!email) {
+      return c.json({ error: "email vacio" })
+    }
     const user = await makeService(c.env.DB).findByEmail(email)
     if (!user) {
       return c.json({ error: "usuario no existe" }, 404)
@@ -65,26 +72,67 @@ export const updatePassword = factory.createHandlers(
   zValidator("json", passwordSchemeBody),
   zValidator("param", idSchemaParam),
   async (c) => {
-    
     const { id } = c.req.valid("param")
-    const { password } = c.req.valid("json")
-    const newPassword = password
+    const { oldPassword, newPassword } = c.req.valid("json")
 
-    if(!id){
-        return c.json({error: "id vacio"}, 400)
+    if (!id) {
+      return c.json({ error: "el id no existe" }, 400)
+    }
+
+    if (!oldPassword || !newPassword) {
+      return c.json({ error: "contraseña vacia" }, 400)
     }
 
     const user = await makeService(c.env.DB).findById(id)
-    if(!user){
-        return c.json({error: "usuario no encontrado"}, 404)
+
+    if (!user) {
+      return c.json({ error: "usuario no existe" }, 404)
     }
 
-    const oldPasswordHash = user.
+    const samePassword = await bcrypt.compare(oldPassword, user.passwordHash)
 
-    if (!password) {
-      return c.json({ error: "contraseña vacia" })
+    if (!samePassword) {
+      return c.json({ error: "la contraseña antigua no coincide" }, 400)
     }
 
-    makeService(c.env.DB).updatePassword()
-  },
+    const passwordUpdated = await makeService(c.env.DB).updatePassword(newPassword, id)
+
+    if (!passwordUpdated) {
+      return c.json({ error: "error al actualizar la contraseña" }, 400)
+    }
+
+    return c.json({ message: "contraseña actualizada" })
+
+  }
+)
+
+export const updateRole = factory.createHandlers(
+  zValidator("param", idSchemaParam),
+  zValidator("json", roleSchemeBody),
+  async (c) => {
+    const { id } = c.req.valid("param")
+    const { role } = c.req.valid("json")
+
+    if (!id) {
+      return c.json({ error: "el id esta vacio" }, 400)
+    }
+
+    if (!role) {
+      return c.json({ error: "el role esta vacio" }, 400)
+    }
+
+    const user = await makeService(c.env.DB).findById(id)
+
+    if (!user) {
+      return c.json({ error: "usuario no encontrado" }, 404)
+    }
+
+    const roleUpdated = await makeService(c.env.DB).updateRole(role, id)
+
+    if (!roleUpdated) {
+      return c.json({ error: "error en actualizar el rol" })
+    }
+
+    return c.json({ messague: "rol actualizado" })
+  }
 )
