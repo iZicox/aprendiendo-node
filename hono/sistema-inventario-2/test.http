@@ -1,0 +1,31 @@
+POST http://127.0.0.1:8787/api/auth/login
+Content-Type: application/json
+
+{
+    "email": "prueba@gmail.com",
+    "password": "12345678"
+}
+
+###
+POST http://127.0.0.1:8787/api/auth/register
+Content-Type: application/json
+
+{
+    "email": "prueba@gmail.com",
+    "password": "12345678"
+}
+
+
+
+###
+
+POST http://localhost:5173/api/products
+Content-Type: application/json
+
+{
+    "sku": "prueba"
+}
+
+###
+
+http://127.0.0.1:8787/api/auth/me

@@ -1,11 +1,9 @@
 import { Hono } from "hono"
 import { AppEnv } from "./lib/types"
-import { userRoute } from "./route/user.route"
-import { authMiddleware } from "./middleware/auth.middleware"
+import { authRoute } from "./route/auth.route"
 
 const app = new Hono<AppEnv>()
   .basePath("/api")
-  .use("/users/*", authMiddleware)
-  .route("/users", userRoute)
+  .route("/auth", authRoute)
 
 export default app

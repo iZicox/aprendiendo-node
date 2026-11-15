@@ -21,13 +21,14 @@
   //     "bucket_name": "my-bucket"
   //   }
   // ],
-   "d1_databases": [
-     {
-       "binding": "DB",
-       "database_name": "database",
-       "database_id": ""
-     }
-   ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "database",
+      "database_id": "",
+      "migrations_dir": "migration"
+    }
+  ],
   // "ai": {
   //   "binding": "AI"
   // },

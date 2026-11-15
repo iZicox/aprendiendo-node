@@ -147,3 +147,11 @@ export const logout = factory.createHandlers(async (c) => {
     limpiarCookies(c)
     return c.json({ message: "sesion cerrada" })
 })
+
+export const me = factory.createHandlers(async (c) => {
+    const payload = c.get("jwtPayload")
+    if (!payload) {
+        return c.json({ error: "no autenticado" }, 401)
+    }
+    return c.json({ ...payload })
+})
