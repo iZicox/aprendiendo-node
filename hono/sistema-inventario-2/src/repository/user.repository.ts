@@ -1,6 +1,5 @@
 import { DrizzleD1Database } from "drizzle-orm/d1"
 import { users } from "../db/schema"
-import { number, string } from "zod"
 import { eq } from "drizzle-orm"
 import { CreateUserInput } from "../lib/types"
 
@@ -44,27 +43,5 @@ export class UserRepository {
       .returning({ ...fields })
 
     return user ?? null
-  }
-
-  async updatePassword(newPasswordHash: string, userId: number) {
-    const [update] = await this.db
-      .update(users)
-      .set({
-        passwordHash: newPasswordHash,
-      })
-      .where(eq(users.id, userId))
-      .returning({ id: users.id })
-    return update !== undefined
-  }
-
-  async updateRole(newRol: "admin" | "user", userId: number) {
-    const [update] = await this.db
-      .update(users)
-      .set({
-        role: newRol,
-      })
-      .where(eq(users.id, userId))
-      .returning({ id: users.id })
-    return update !== undefined
   }
 }

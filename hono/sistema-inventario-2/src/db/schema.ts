@@ -20,7 +20,7 @@ export const users = sqliteTable(
 )
 
 export const refreshTokens = sqliteTable("refresh_tokens", {
-  tokenHash: text("token_hash").notNull().primaryKey(),
+  token: text("token").notNull().primaryKey(),
   userId: integer("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),

@@ -12,8 +12,9 @@ const roleShceme = z.enum(["admin", "user"])
 export const createUserSchemeBody = z.object({
   email: emailSchema,
   password: passwordScheme,
-  role: roleShceme,
 })
+
+export const loginUserSchemeBody = createUserSchemeBody
 
 export const passwordSchemeBody = z.object({
   oldPassword: passwordScheme,

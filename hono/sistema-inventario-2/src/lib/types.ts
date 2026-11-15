@@ -6,6 +6,28 @@ export type CreateUserInput = {
   role?: "admin" | "user"
 }
 
+export type Session = {
+  token: string,
+  userId: number,
+  expiresAt: Date
+}
+
+export type User = {
+  id?: number,
+  email: string,
+  passwordHash?: string,
+  role: string
+}
+
+export type Payload = {
+  id: number,
+  email: string,
+  role: string
+}
+
 type Role = {}
 
-export type AppEnv = { Bindings: Env, Variables: JWTPayload }
+export type AppEnv = {
+  Bindings: Env,
+  Variables: { jwtPayload: JWTPayload }
+}

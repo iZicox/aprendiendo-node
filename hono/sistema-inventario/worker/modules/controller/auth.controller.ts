@@ -1,6 +1,6 @@
 import { zValidator } from '@hono/zod-validator'
 import { drizzle } from 'drizzle-orm/d1'
-import type { Context } from 'hono'
+import { Context } from 'hono'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import { createFactory, createMiddleware } from 'hono/factory'
 
