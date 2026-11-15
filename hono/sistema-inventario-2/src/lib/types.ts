@@ -22,7 +22,7 @@ export type User = {
 export type Payload = {
   id: number,
   email: string,
-  role: string
+  role: "admin" | "user"
 }
 
 type Role = {}

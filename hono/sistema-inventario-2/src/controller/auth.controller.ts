@@ -1,6 +1,6 @@
 import { Context } from "hono"
-import { AppEnv, CreateUserInput, Session, User } from "../lib/types"
-import { sign, verify } from "hono/jwt"
+import { AppEnv, CreateUserInput, Payload, Session } from "../lib/types"
+import { sign } from "hono/jwt"
 import { RefreshTokensRepository } from "../repository/refreshTokes.repository"
 import { createFactory } from "hono/factory"
 import { drizzle } from "drizzle-orm/d1"
@@ -34,9 +34,12 @@ function makeServices(d1: D1Database) {
     }
 }
 
-async function generarTokens(c: Context<AppEnv>, user: User) {
-    // revisar que el usuario tenga id
-    if (!user.id) return c.json({ error: "id vacio" })
+function limpiarCookies(c: Context<AppEnv>) {
+    deleteCookie(c, "accessToken", { path: "/" })
+    deleteCookie(c, "refreshToken", { path: REFRESH_PATH })
+}
+
+async function generarTokens(c: Context<AppEnv>, user: Payload) {
     // crear el access token
     const accessToken = await sign(
         {
@@ -65,10 +68,10 @@ async function generarTokens(c: Context<AppEnv>, user: User) {
 // /registro
 export const register = factory.createHandlers(zValidator("json", createUserSchemeBody), async (c) => {
     const { email, password } = c.req.valid("json")
-    if (await makeServices(c.env.DB).userRepo.findByEmail(email)) {
+    const { userRepo } = makeServices(c.env.DB)
+    if (await userRepo.findByEmail(email)) {
         return c.json({ error: "el usuario ya existe" }, 409)
     }
-
 
     const passwordHash = hasher.hash(password)
     const newUser: CreateUserInput = {
@@ -76,7 +79,7 @@ export const register = factory.createHandlers(zValidator("json", createUserSche
         passwordHash: passwordHash,
         role: "user"
     }
-    const user = await makeServices(c.env.DB).userRepo.createUser(newUser)
+    const user = await userRepo.createUser(newUser)
     if (!user) {
         return c.json({ error: "error al crear el usuario" }, 500)
     }
@@ -84,8 +87,7 @@ export const register = factory.createHandlers(zValidator("json", createUserSche
         id: user.id,
         email: user.email,
         role: user.role
-    })
-
+    }, 201)
 })
 
 // /login
@@ -113,20 +115,21 @@ export const refresh = factory.createHandlers(async (c) => {
     const { userRepo, refreshRepo } = makeServices(c.env.DB)
     // revisar si esta en la base de datos
     const session = await refreshRepo.findByToken(refreshToken)
-    deleteCookie(c, "accessToken", { path: "/" })
-    deleteCookie(c, "refreshToken", { path: REFRESH_PATH })
     if (!session) {
+        limpiarCookies(c)
         return c.json({ error: "no existe el refresh token en la base de datos" }, 401)
     }
+    // rotacion: el refresh usado se elimina siempre
     await refreshRepo.deleteByToken(refreshToken)
-    // comprobar que sigue activo 
+    // comprobar que sigue activo
     if (session.expiresAt.getTime() < Date.now()) {
+        limpiarCookies(c)
         return c.json({ error: "No autorizado, refresh token caducado" }, 401)
     }
-    // de seguir activo hacer la rotacion de tokens
 
     const user = await userRepo.findById(session.userId)
     if (!user) {
+        limpiarCookies(c)
         return c.json({ error: "usuario no encontrado" }, 404)
     }
     // generar tanto el access como el refresh
@@ -138,14 +141,9 @@ export const refresh = factory.createHandlers(async (c) => {
 
 export const logout = factory.createHandlers(async (c) => {
     const refreshToken = getCookie(c, "refreshToken")
-    if (!refreshToken) {
-        return c.json({ error: "cookies vacias" }, 400)
-    }
-    const session = await makeServices(c.env.DB).refreshRepo.findByToken(refreshToken)
-    if (session) {
+    if (refreshToken) {
         await makeServices(c.env.DB).refreshRepo.deleteByToken(refreshToken)
     }
-    deleteCookie(c, "refreshToken", { path: REFRESH_PATH })
-    deleteCookie(c, "accessToken", { path: "/" })
+    limpiarCookies(c)
     return c.json({ message: "sesion cerrada" })
 })
