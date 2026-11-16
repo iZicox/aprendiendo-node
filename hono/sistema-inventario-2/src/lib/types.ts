@@ -7,27 +7,28 @@ export type CreateUserInput = {
 }
 
 export type Session = {
-  token: string,
-  userId: number,
+  token: string
+  userId: number
   expiresAt: Date
 }
 
 export type User = {
-  id?: number,
-  email: string,
-  passwordHash?: string,
+  id?: number
+  email: string
+  passwordHash?: string
   role: string
 }
 
 export type Payload = {
-  id: number,
-  email: string,
+  id: number
+  email: string
   role: "admin" | "user"
+  exp: number
 }
 
 type Role = {}
 
 export type AppEnv = {
-  Bindings: Env,
+  Bindings: CloudflareBindings
   Variables: { jwtPayload: JWTPayload }
 }

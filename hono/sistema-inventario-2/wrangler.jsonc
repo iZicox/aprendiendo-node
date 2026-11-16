@@ -3,6 +3,9 @@
   "name": "sistema-inventario-2",
   "main": "src/index.ts",
   "compatibility_date": "2026-11-13",
+  "secrets": {
+    "required": ["JWT_SECRET"],
+  },
   // "compatibility_flags": [
   //   "nodejs_compat"
   // ],
@@ -26,8 +29,8 @@
       "binding": "DB",
       "database_name": "database",
       "database_id": "",
-      "migrations_dir": "migration"
-    }
+      "migrations_dir": "migration",
+    },
   ],
   // "ai": {
   //   "binding": "AI"
