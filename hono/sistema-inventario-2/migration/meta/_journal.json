@@ -8,6 +8,13 @@
       "when": 1794778869710,
       "tag": "0000_fair_mad_thinker",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1794826430309,
+      "tag": "0001_sparkling_shotgun",
+      "breakpoints": true
     }
   ]
 }
