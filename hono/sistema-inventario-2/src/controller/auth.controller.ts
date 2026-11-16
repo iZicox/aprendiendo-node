@@ -10,6 +10,7 @@ import { zValidator } from "@hono/zod-validator"
 import {
   createUserSchemeBody,
   loginUserSchemeBody,
+  updateRoleSchema,
 } from "../schema/userSchemaZod"
 import { Hasher } from "../security/Hasher"
 import { HasherBcryptImpl } from "../security/HasherBcryptImpl"
@@ -178,3 +179,18 @@ export const me = factory.createHandlers(async (c) => {
   }
   return c.json({ ...payload })
 })
+
+// cambio de rol
+export const updateRole = factory.createHandlers(
+  zValidator("json", updateRoleSchema),
+  async (c) => {
+    const { userId, role } = c.req.valid("json")
+    const { userRepo } = await makeServices(c.env.DB)
+    const user = await userRepo.findById(userId)
+    if (!user) {
+      return c.json({ error: "usuario no existe" }, 404)
+    }
+    await userRepo.updateRole(userId, role)
+    return c.json({ message: "rol cambiado" })
+  },
+)

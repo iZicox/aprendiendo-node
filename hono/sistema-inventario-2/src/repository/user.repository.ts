@@ -44,4 +44,12 @@ export class UserRepository {
 
     return user ?? null
   }
+
+  async updateRole(userId: number, role: "admin" | "user") {
+    await this.db
+      .update(users)
+      .set({ role: role })
+      .where(eq(users.id, userId))
+      .returning()
+  }
 }
