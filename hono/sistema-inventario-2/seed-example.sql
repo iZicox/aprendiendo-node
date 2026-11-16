@@ -22,8 +22,8 @@ INSERT OR IGNORE INTO movement_type (code, description, sign) VALUES
   ('TRANSFER_IN',  'Entrada por traspaso desde otra ubicación',  1);
 
 INSERT OR IGNORE INTO location (code) VALUES
-  ('Almacen_1'),
-  ('Almacen_2');
+  ('ALMACEN-1'),
+  ('ALMACEN-2');
 
 -- ─────────────────────────────────────────────
 -- Productos
@@ -40,30 +40,30 @@ INSERT INTO product (id, sku) VALUES
 -- Movimientos (se resuelve location por code)
 -- ─────────────────────────────────────────────
 WITH v(op, pid, loc, type, qty, tr, note, off) AS (VALUES
-  ('op-0001', 1, 'Almacen_1', 'ENTRY',        200, NULL,     'Compra proveedor PO-1001',     '-30 days'),
-  ('op-0002', 1, 'Almacen_1', 'EXIT',          50, NULL,     'Pedido cliente SO-2001',       '-25 days'),
-  ('op-0003', 1, 'Almacen_1', 'RETURN',         5, NULL,     'Devolución SO-2001',           '-20 days'),
-  ('op-0004', 1, 'Almacen_1', 'TRANSFER_OUT',  40, 'T-0001', 'Traspaso a Almacen_2',         '-15 days'),
-  ('op-0004', 1, 'Almacen_2', 'TRANSFER_IN',   40, 'T-0001', 'Traspaso desde Almacen_1',     '-15 days'),
-  ('op-0005', 1, 'Almacen_2', 'EXIT',          15, NULL,     'Pedido cliente SO-2002',       '-10 days'),
+  ('op-0001', 1, 'ALMACEN-1', 'ENTRY',        200, NULL,     'Compra proveedor PO-1001',     '-30 days'),
+  ('op-0002', 1, 'ALMACEN-1', 'EXIT',          50, NULL,     'Pedido cliente SO-2001',       '-25 days'),
+  ('op-0003', 1, 'ALMACEN-1', 'RETURN',         5, NULL,     'Devolución SO-2001',           '-20 days'),
+  ('op-0004', 1, 'ALMACEN-1', 'TRANSFER_OUT',  40, 'T-0001', 'Traspaso a ALMACEN-2',         '-15 days'),
+  ('op-0004', 1, 'ALMACEN-2', 'TRANSFER_IN',   40, 'T-0001', 'Traspaso desde ALMACEN-1',     '-15 days'),
+  ('op-0005', 1, 'ALMACEN-2', 'EXIT',          15, NULL,     'Pedido cliente SO-2002',       '-10 days'),
 
-  ('op-0006', 2, 'Almacen_1', 'ENTRY',        300, NULL,     'Compra proveedor PO-1002',     '-28 days'),
-  ('op-0007', 2, 'Almacen_1', 'EXIT',         120, NULL,     'Pedido cliente SO-2003',       '-18 days'),
-  ('op-0008', 2, 'Almacen_1', 'DAMAGE',         3, NULL,     'Carcasa rota en recepción',    '-17 days'),
-  ('op-0009', 2, 'Almacen_1', 'ADJUST_OUT',     2, NULL,     'Recuento inventario',          '-5 days'),
+  ('op-0006', 2, 'ALMACEN-1', 'ENTRY',        300, NULL,     'Compra proveedor PO-1002',     '-28 days'),
+  ('op-0007', 2, 'ALMACEN-1', 'EXIT',         120, NULL,     'Pedido cliente SO-2003',       '-18 days'),
+  ('op-0008', 2, 'ALMACEN-1', 'DAMAGE',         3, NULL,     'Carcasa rota en recepción',    '-17 days'),
+  ('op-0009', 2, 'ALMACEN-1', 'ADJUST_OUT',     2, NULL,     'Recuento inventario',          '-5 days'),
 
-  ('op-0010', 3, 'Almacen_1', 'ENTRY',        150, NULL,     'Compra proveedor PO-1003',     '-27 days'),
-  ('op-0011', 3, 'Almacen_1', 'ADJUST_IN',      4, NULL,     'Recuento inventario',          '-12 days'),
-  ('op-0012', 3, 'Almacen_1', 'EXIT',          60, NULL,     'Pedido cliente SO-2004',       '-8 days'),
-  ('op-0013', 3, 'Almacen_1', 'TRANSFER_OUT',  30, 'T-0002', 'Traspaso a Almacen_2',         '-6 days'),
-  ('op-0013', 3, 'Almacen_2', 'TRANSFER_IN',   30, 'T-0002', 'Traspaso desde Almacen_1',     '-6 days'),
+  ('op-0010', 3, 'ALMACEN-1', 'ENTRY',        150, NULL,     'Compra proveedor PO-1003',     '-27 days'),
+  ('op-0011', 3, 'ALMACEN-1', 'ADJUST_IN',      4, NULL,     'Recuento inventario',          '-12 days'),
+  ('op-0012', 3, 'ALMACEN-1', 'EXIT',          60, NULL,     'Pedido cliente SO-2004',       '-8 days'),
+  ('op-0013', 3, 'ALMACEN-1', 'TRANSFER_OUT',  30, 'T-0002', 'Traspaso a ALMACEN-2',         '-6 days'),
+  ('op-0013', 3, 'ALMACEN-2', 'TRANSFER_IN',   30, 'T-0002', 'Traspaso desde ALMACEN-1',     '-6 days'),
 
-  ('op-0014', 4, 'Almacen_2', 'ENTRY',         80, NULL,     'Compra proveedor PO-1004',     '-22 days'),
-  ('op-0015', 4, 'Almacen_2', 'EXIT',          25, NULL,     'Pedido cliente SO-2005',       '-9 days'),
-  ('op-0016', 4, 'Almacen_2', 'DAMAGE',         1, NULL,     'Fallo en prueba de encendido', '-3 days'),
+  ('op-0014', 4, 'ALMACEN-2', 'ENTRY',         80, NULL,     'Compra proveedor PO-1004',     '-22 days'),
+  ('op-0015', 4, 'ALMACEN-2', 'EXIT',          25, NULL,     'Pedido cliente SO-2005',       '-9 days'),
+  ('op-0016', 4, 'ALMACEN-2', 'DAMAGE',         1, NULL,     'Fallo en prueba de encendido', '-3 days'),
 
-  ('op-0017', 5, 'Almacen_1', 'ENTRY',         50, NULL,     'Compra proveedor PO-1005',     '-14 days'),
-  ('op-0018', 5, 'Almacen_1', 'EXIT',          50, NULL,     'Pedido proyecto SO-2006',      '-2 days')
+  ('op-0017', 5, 'ALMACEN-1', 'ENTRY',         50, NULL,     'Compra proveedor PO-1005',     '-14 days'),
+  ('op-0018', 5, 'ALMACEN-1', 'EXIT',          50, NULL,     'Pedido proyecto SO-2006',      '-2 days')
 )
 INSERT INTO movement (operation_id, product_id, location_id, movementTypeCode, quantity, transfer_id, note, created_at)
 SELECT v.op, v.pid, l.id, v.type, v.qty, v.tr, v.note, datetime('now', v.off)

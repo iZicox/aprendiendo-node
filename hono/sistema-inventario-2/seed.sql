@@ -9,5 +9,5 @@ insert or ignore into movement_type (code, description, sign) values
    ('TRANSFER_IN',  'Entrada por traspaso desde otra ubicación',   1);
 
 insert or ignore into location (code) values
-('Almacen_1'),
-('Almacen_2');
+('ALMACEN-1'),
+('ALMACEN-2');
