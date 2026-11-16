@@ -1,5 +1,5 @@
 import { JWTPayload } from "hono/utils/jwt/types"
-import { location } from "../db/schema"
+import { location, movementType } from "../db/schema"
 
 export type CreateUserInput = {
   email: string
@@ -40,3 +40,8 @@ export type AppEnv = {
 
 export type NewLocation = typeof location.$inferInsert
 export type Location = typeof location.$inferSelect
+
+/**
+ * MOVEMENT TYPE TYPES
+ */
+export type NewMovementType = typeof movementType.$inferInsert
