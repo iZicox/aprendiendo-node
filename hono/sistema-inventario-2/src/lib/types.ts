@@ -1,4 +1,5 @@
 import { JWTPayload } from "hono/utils/jwt/types"
+import { location } from "../db/schema"
 
 export type CreateUserInput = {
   email: string
@@ -32,3 +33,10 @@ export type AppEnv = {
   Bindings: CloudflareBindings
   Variables: { jwtPayload: JWTPayload }
 }
+
+/**
+ * LOCATION TYPES
+ */
+
+export type NewLocation = typeof location.$inferInsert
+export type Location = typeof location.$inferSelect

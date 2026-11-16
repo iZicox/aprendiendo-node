@@ -1,11 +1,3 @@
-POST http://127.0.0.1:8787/api/auth/login
-Content-Type: application/json
-
-{
-    "email": "prueba@gmail.com",
-    "password": "12345678"
-}
-
 ###
 POST http://127.0.0.1:8787/api/auth/register
 Content-Type: application/json
@@ -14,18 +6,52 @@ Content-Type: application/json
     "email": "prueba@gmail.com",
     "password": "12345678"
 }
-
-
-
 ###
 
-POST http://localhost:5173/api/products
+# @name login
+POST http://127.0.0.1:8787/api/auth/login
 Content-Type: application/json
 
 {
-    "sku": "prueba"
+    "email": "prueba@gmail.com",
+    "password": "12345678"
 }
+
+@cookie = {{login.response.headers.Set-Cookie}}
 
 ###
 
-http://127.0.0.1:8787/api/auth/me
+
+GET http://127.0.0.1:8787/api/auth/me
+ Cookie: {{cookie}}
+
+###
+
+POST http://127.0.0.1:8787/api/auth/logout
+
+###
+GET http://127.0.0.1:8787/api/locations
+Cookie: {{cookie}}
+###
+GET http://127.0.0.1:8787/api/locations/1
+Cookie: {{cookie}}
+###
+GET http://127.0.0.1:8787/api/locations/11
+Cookie: {{cookie}}
+###
+GET http://127.0.0.1:8787/api/locations/code/almacen-1
+Cookie: {{cookie}}
+###
+GET http://127.0.0.1:8787/api/locations/code/almacen-21
+Cookie: {{cookie}}
+###
+DELETE http://127.0.0.1:8787/api/locations/5
+Cookie: {{cookie}}
+###
+POST http://127.0.0.1:8787/api/locations
+Cookie: {{cookie}}
+Content-Type: application/json
+
+{
+    "code": "nuevo"
+}

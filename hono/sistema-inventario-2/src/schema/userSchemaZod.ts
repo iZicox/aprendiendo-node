@@ -1,7 +1,5 @@
 import z from "zod"
-
-export const idSchema = z.coerce.number().int().positive()
-export const idSchemaParam = z.object({ id: idSchema })
+import { idSchema } from "./globalSchemeZod"
 
 export const emailSchema = z.email()
 export const emailSchemaParam = z.object({ email: emailSchema })
