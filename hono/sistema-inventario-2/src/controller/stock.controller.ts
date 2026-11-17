@@ -10,14 +10,19 @@ import {
   productInLocationParam,
   skuParam,
 } from "../schema/stockSchemeZod"
-import { idSchemaParam } from "../schema/globalSchemeZod"
 import { NotFoundError } from "../lib/errors"
+import { LocationRepository } from "../repository/location.repository"
+import { ProductRepository } from "../repository/product.repository"
 
 const factory = createFactory<AppEnv>()
 
 const makeServices = (d1: D1Database) => {
   const db = drizzle(d1)
-  return { stockRepo: new StockRepository(db) }
+  return {
+    stockRepo: new StockRepository(db),
+    locationRepo: new LocationRepository(db),
+    productRepo: new ProductRepository(db),
+  }
 }
 
 export const getAll = factory.createHandlers(
@@ -49,21 +54,21 @@ export const getTotalsByProduct = factory.createHandlers(
   },
 )
 
-export const getTotalsByLocation = factory.createHandlers(
-  zValidator("query", paginationSchema),
-  async (c) => {
-    const result = await makeServices(c.env.DB).stockRepo.getTotalsByLocation()
-    return c.json(result)
-  },
-)
+export const getTotalsByLocation = factory.createHandlers(async (c) => {
+  const result = await makeServices(c.env.DB).stockRepo.getTotalsByLocation()
+  return c.json(result)
+})
 
 export const getByProduct = factory.createHandlers(
   zValidator("param", productIdSchemeParam),
   async (c) => {
     const { productId } = c.req.valid("param")
-    const result = await makeServices(c.env.DB).stockRepo.getByProduct(
-      productId,
-    )
+    const { stockRepo, productRepo } = await makeServices(c.env.DB)
+    const productExist = await productRepo.getById(productId)
+    if (!productExist) {
+      throw new NotFoundError("Producto no existe")
+    }
+    const result = await stockRepo.getByProduct(productId)
     return c.json(result)
   },
 )
@@ -87,11 +92,13 @@ export const getByLocation = factory.createHandlers(
   zValidator("query", paginationSchema),
   async (c) => {
     const { locationId } = c.req.valid("param")
-    const opt = c.req.valid("query")
-    const result = await makeServices(c.env.DB).stockRepo.getByLocation(
-      locationId,
-      opt,
-    )
+    const { stockRepo, locationRepo } = await makeServices(c.env.DB)
+    const locationExist = await locationRepo.getById(locationId)
+    if (!locationExist) {
+      throw new NotFoundError("Ubicacion no encontrada")
+    }
+    const opts = c.req.valid("query")
+    const result = await stockRepo.getByLocation(locationId, opts)
     return c.json(result)
   },
 )
@@ -103,6 +110,9 @@ export const getLocationTotal = factory.createHandlers(
     const result = await makeServices(c.env.DB).stockRepo.getLocationTotal(
       locationId,
     )
+    if (!result) {
+      throw new NotFoundError("Ubicacion no encontrada")
+    }
     return c.json(result)
   },
 )
