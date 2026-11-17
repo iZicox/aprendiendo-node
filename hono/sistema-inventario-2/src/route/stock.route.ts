@@ -1,9 +1,10 @@
 import { Hono } from "hono"
 import { AppEnv } from "../lib/types"
 import * as stockController from "../controller/stock.controller"
+import { authMiddleware } from "../middleware/auth.middleware"
 
 export const stockRoute = new Hono<AppEnv>()
-
+  .use(authMiddleware)
   .get("/", ...stockController.getAll)
   .get("/total", ...stockController.getTotal)
   .get("/by-product", ...stockController.getTotalsByProduct)

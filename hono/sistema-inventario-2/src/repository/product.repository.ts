@@ -10,20 +10,11 @@ export class ProductRepository {
     this.db = db
   }
 
+  // POST /products
   async create(newProduct: NewProduct) {
     const [row] = await this.db.insert(product).values(newProduct).returning()
     return row
   }
-
-  /**
-   * 
-  sql para listar todos con suma
-
-  select p.sku, sum(s.quantity) 
-  from stock s 
-  inner join product p on p.id = s.product_id 
-  group by p.sku
-  */
   // GET /products
   async getAll(pageSize: number, offset: number) {
     return await this.db
@@ -38,18 +29,6 @@ export class ProductRepository {
       .limit(pageSize)
       .offset(offset)
   }
-
-  /**
-   * 
-   sql para sacar un producto y su inventario
-
-  select p.sku, sum(s.quantity) 
-    from stock s 
-    inner join product p 
-      on p.id = s.product_id 
-    where p.id = '1' 
-    group by p.sku
-  */
   // GET /products/:id
   async getById(id: number) {
     const [row] = await this.db
@@ -77,14 +56,11 @@ export class ProductRepository {
     return row
   }
   // DELETE /products/:id
-  async deleteById(id: number) {}
+  async deleteById(id: number) {
+    return this.db.delete(product).where(eq(product.id, id)).returning()
+  }
   // DELETE /products/:sku
-  async deleteBySku(sku: string) {}
+  async deleteBySku(sku: string) {
+    return this.db.delete(product).where(eq(product.sku, sku)).returning()
+  }
 }
-
-/**
- 
-sql de listado de inventario por almacen
-
-select p.sku, sum(s.quantity) from stock s inner join product p on p.id = s.product_id inner join location l on l.id = s.location_id where l.id = '1' group by p.sku
- */
