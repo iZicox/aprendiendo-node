@@ -56,8 +56,10 @@ DELETE http://127.0.0.1:8787/api/locations/{{id}}
 Cookie: {{cookie}}
 ###
 GET http://127.0.0.1:8787/api/stock?pageSize=&page=
+Cookie: {{cookie}}
 ###
 GET http://127.0.0.1:8787/api/stock/total
+Cookie: {{cookie}}
 ###
 GET http://127.0.0.1:8787/api/stock/by-product?page=&pageSize=
 ###
