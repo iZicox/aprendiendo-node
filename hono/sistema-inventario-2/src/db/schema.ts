@@ -12,14 +12,20 @@ import {
 // ─────────────────────────────────────────────────────────────
 // movement_type — catálogo de tipos. Extensible por INSERT.
 // ─────────────────────────────────────────────────────────────
-export const movementType = sqliteTable("movement_type", {
-  code: text("code").primaryKey(), // 'ENTRY', 'EXIT', ...
-  description: text("description").notNull(),
-  sign: integer("sign").notNull(), // 1 = suma, -1 = resta
-  createdAt: text("created_at")
-    .notNull()
-    .default(sql`(datetime('now'))`),
-})
+export const movementType = sqliteTable(
+  "movement_type",
+  {
+    code: text("code").primaryKey(), // 'ENTRY', 'EXIT', ...
+    description: text("description").notNull(),
+    sign: integer("sign").notNull(), // 1 = suma, -1 = resta
+    createdAt: text("created_at")
+      .notNull()
+      .default(sql`(datetime('now'))`),
+  },
+  (table) => [
+    check("movement_type_sign_check", sql`${table.sign} IN (1, -1)`),
+  ],
+)
 
 // ─────────────────────────────────────────────────────────────
 // location — en MVP solo existe 'WAREHOUSE'.
@@ -43,7 +49,8 @@ export const product = sqliteTable("product", {
     .default(sql`(datetime('now'))`),
   updatedAt: text("updated_at")
     .notNull()
-    .default(sql`(datetime('now'))`),
+    .default(sql`(datetime('now'))`)
+    .$onUpdate(() => sql`(datetime('now'))`),
 })
 
 // ─────────────────────────────────────────────────────────────
@@ -62,7 +69,7 @@ export const movement = sqliteTable(
     locationId: integer("location_id")
       .notNull()
       .references(() => location.id),
-    movementTypeCode: text("movementTypeCode")
+    movementTypeCode: text("movement_type_code")
       .notNull()
       .references(() => movementType.code),
     quantity: integer("quantity").notNull(),
@@ -78,7 +85,8 @@ export const movement = sqliteTable(
     index("idx_movement_type").on(table.movementTypeCode, table.createdAt),
     index("idx_movement_operation").on(table.operationId),
     // Una transferencia no puede repetir la misma pierna (OUT/IN) con el mismo id.
-    // transfer_id NULL (movimientos comunes) no choca: los NULL no son distintos en SQLite.
+    // transfer_id NULL (movimientos comunes) no choca: en un índice UNIQUE de SQLite
+    // cada NULL se considera distinto de los demás.
     uniqueIndex("uniq_movement_transfer_leg").on(
       table.transferId,
       table.movementTypeCode,
@@ -103,7 +111,8 @@ export const stock = sqliteTable(
     quantity: integer("quantity").notNull().default(0),
     updatedAt: text("updated_at")
       .notNull()
-      .default(sql`(datetime('now'))`),
+      .default(sql`(datetime('now'))`)
+      .$onUpdate(() => sql`(datetime('now'))`),
   },
   (table) => [
     primaryKey({ columns: [table.productId, table.locationId] }),
@@ -123,7 +132,7 @@ export const users = sqliteTable(
       .default("user"),
     createdAt: text("created_at")
       .notNull()
-      .default(sql`(CURRENT_TIMESTAMP)`),
+      .default(sql`(datetime('now'))`),
   },
   (table) => [
     check("users_role_check", sql`${table.role} IN ('admin', 'user')`),

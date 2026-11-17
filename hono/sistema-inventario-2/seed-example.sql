@@ -65,7 +65,7 @@ WITH v(op, pid, loc, type, qty, tr, note, off) AS (VALUES
   ('op-0017', 5, 'ALMACEN-1', 'ENTRY',         50, NULL,     'Compra proveedor PO-1005',     '-14 days'),
   ('op-0018', 5, 'ALMACEN-1', 'EXIT',          50, NULL,     'Pedido proyecto SO-2006',      '-2 days')
 )
-INSERT INTO movement (operation_id, product_id, location_id, movementTypeCode, quantity, transfer_id, note, created_at)
+INSERT INTO movement (operation_id, product_id, location_id, movement_type_code, quantity, transfer_id, note, created_at)
 SELECT v.op, v.pid, l.id, v.type, v.qty, v.tr, v.note, datetime('now', v.off)
 FROM v JOIN location l ON l.code = v.loc;
 
@@ -75,7 +75,7 @@ FROM v JOIN location l ON l.code = v.loc;
 INSERT INTO stock (product_id, location_id, quantity)
 SELECT m.product_id, m.location_id, SUM(m.quantity * t.sign)
 FROM movement m
-JOIN movement_type t ON t.code = m.movementTypeCode
+JOIN movement_type t ON t.code = m.movement_type_code
 GROUP BY m.product_id, m.location_id;
 
 -- ─────────────────────────────────────────────
