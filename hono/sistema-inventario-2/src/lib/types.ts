@@ -1,5 +1,5 @@
 import { JWTPayload } from "hono/utils/jwt/types"
-import { location, movementType } from "../db/schema"
+import { location, movementType, product } from "../db/schema"
 
 export type CreateUserInput = {
   email: string
@@ -45,3 +45,15 @@ export type Location = typeof location.$inferSelect
  * MOVEMENT TYPE TYPES
  */
 export type NewMovementType = typeof movementType.$inferInsert
+
+/**
+ *  PRODUCT TYPES
+ */
+
+export type NewProduct = typeof product.$inferInsert
+
+/**
+ * STOCK TYPES
+ */
+
+export type Pagination = { page: number; pageSize: number }

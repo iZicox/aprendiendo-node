@@ -1,10 +1,10 @@
-###
-@url = http://127.0.0.1:8788
+### 
+@url = http://127.0.0.1:8787
 POST {{url}}/api/auth/register
 Content-Type: application/json
 
 {
-    "email": "prueba3@gmail.com",
+    "email": "prueba@gmail.com",
     "password": "12345678"
 }
 ###
@@ -14,22 +14,15 @@ POST {{url}}/api/auth/login
 Content-Type: application/json
 
 {
-    "email": "prueba3@gmail.com",
+    "email": "prueba@gmail.com",
     "password": "12345678"
 }
-
-@cookie = {{login.response.headers.Set-Cookie}}
-
 ###
-
-
+@cookie = {{login.response.headers.Set-Cookie}}
 GET http://127.0.0.1:8787/api/auth/me
  Cookie: {{cookie}}
-
 ###
-
 POST http://127.0.0.1:8787/api/auth/logout
-
 ###
 GET http://127.0.0.1:8787/api/locations
 Cookie: {{cookie}}
@@ -46,9 +39,10 @@ Cookie: {{cookie}}
 GET http://127.0.0.1:8787/api/locations/code/almacen-21
 Cookie: {{cookie}}
 ###
-DELETE http://127.0.0.1:8787/api/locations/5
+DELETE http://127.0.0.1:8787/api/locations/6
 Cookie: {{cookie}}
-###
+### 
+# @name create
 POST http://127.0.0.1:8787/api/locations
 Cookie: {{cookie}}
 Content-Type: application/json
@@ -56,3 +50,27 @@ Content-Type: application/json
 {
     "code": "nuevo"
 }
+###
+@id = {{create.response.body.$.id}}
+DELETE http://127.0.0.1:8787/api/locations/{{id}}
+Cookie: {{cookie}}
+###
+GET http://127.0.0.1:8787/api/stock?pageSize=&page=
+###
+GET http://127.0.0.1:8787/api/stock/total
+###
+GET http://127.0.0.1:8787/api/stock/by-product?page=&pageSize=
+###
+GET http://127.0.0.1:8787/api/stock/by-location
+###
+GET http://127.0.0.1:8787/api/stock/products/1
+###
+GET http://127.0.0.1:8787/api/stock/products/1/total
+###
+GET http://127.0.0.1:8787/api/stock/locations/1
+###
+GET http://127.0.0.1:8787/api/stock/locations/2/total
+###
+GET http://127.0.0.1:8787/api/stock/locations/2/products/1
+###
+GET http://127.0.0.1:8787/api/stock/sku/DRV-24V-100W

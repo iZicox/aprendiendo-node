@@ -9,15 +9,18 @@ export class LocationRepository {
     this.db = db
   }
 
+  // POST /locattions
   async create(newLocation: NewLocation) {
     const [row] = await this.db.insert(location).values(newLocation).returning()
     return row
   }
 
+  // GET /locations
   async getAll() {
     return await this.db.select().from(location)
   }
 
+  // GET /locations/:id
   async getById(id: number) {
     const [row] = await this.db
       .select()
@@ -26,6 +29,7 @@ export class LocationRepository {
     return row
   }
 
+  // GET /locations/:code
   async getByCode(code: string) {
     const [row] = await this.db
       .select()
@@ -34,6 +38,7 @@ export class LocationRepository {
     return row
   }
 
+  // DELETE /locations/:id
   async delete(id: number) {
     await this.db.delete(location).where(eq(location.id, id))
   }
