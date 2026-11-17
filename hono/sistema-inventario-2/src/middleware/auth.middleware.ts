@@ -1,5 +1,5 @@
 import { createFactory } from "hono/factory"
-import { AppEnv } from "../lib/types"
+import { AppEnv, Payload } from "../lib/types"
 import { getCookie } from "hono/cookie"
 import { verify } from "hono/jwt"
 
@@ -17,7 +17,7 @@ export const authMiddleware = factory.createMiddleware(async (c, next) => {
     // verificar token obteniendo el payload
     const payload = await verify(token, c.env.JWT_SECRET, "HS256")
     // guardar payload para el siguiente paso
-    c.set("jwtPayload", payload)
+    c.set("jwtPayload", payload as Payload)
   } catch {
     // salir si expiro
     return c.json({ error: "token invalido o expirado" }, 401)

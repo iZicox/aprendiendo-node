@@ -15,6 +15,7 @@ import {
 import { Hasher } from "../security/Hasher"
 import { HasherBcryptImpl } from "../security/HasherBcryptImpl"
 import { Pbkdf2PasswordHasher } from "../security/HasherPbkdf2Impl"
+import { ConflictError, isUniqueConstraintError } from "../lib/errors"
 
 const ACCESS_DURATION = 60 * 15
 const REFRESH_DURATION = 60 * 60 * 24 * 7
@@ -83,8 +84,9 @@ export const register = factory.createHandlers(
   async (c) => {
     const { email, password } = c.req.valid("json")
     const { userRepo } = makeServices(c.env.DB)
+
     if (await userRepo.findByEmail(email)) {
-      return c.json({ error: "el usuario ya existe" }, 409)
+      return c.json({ error: "El usuario ya existe" }, 409)
     }
 
     const passwordHash = await hasher.hash(password)
@@ -93,7 +95,17 @@ export const register = factory.createHandlers(
       passwordHash: passwordHash,
       role: "user",
     }
-    const user = await userRepo.createUser(newUser)
+
+    let user
+    try {
+      user = await userRepo.createUser(newUser)
+    } catch (err) {
+      if (isUniqueConstraintError(err)) {
+        throw new ConflictError("El usuario ya existe")
+      }
+      throw err
+    }
+
     if (!user) {
       return c.json({ error: "error al crear el usuario" }, 500)
     }
@@ -185,7 +197,7 @@ export const updateRole = factory.createHandlers(
   zValidator("json", updateRoleSchema),
   async (c) => {
     const { userId, role } = c.req.valid("json")
-    const { userRepo } = await makeServices(c.env.DB)
+    const { userRepo } = makeServices(c.env.DB)
     const user = await userRepo.findById(userId)
     if (!user) {
       return c.json({ error: "usuario no existe" }, 404)

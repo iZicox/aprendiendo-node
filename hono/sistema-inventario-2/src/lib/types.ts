@@ -1,4 +1,3 @@
-import { JWTPayload } from "hono/utils/jwt/types"
 import { location, movementType, product } from "../db/schema"
 
 export type CreateUserInput = {
@@ -27,11 +26,9 @@ export type Payload = {
   exp: number
 }
 
-type Role = {}
-
 export type AppEnv = {
   Bindings: CloudflareBindings
-  Variables: { jwtPayload: JWTPayload }
+  Variables: { jwtPayload: Payload }
 }
 
 /**

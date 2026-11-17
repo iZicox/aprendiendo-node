@@ -125,6 +125,9 @@ export const getProductInLocation = factory.createHandlers(
       productId,
       locationId,
     )
+    if (!result) {
+      throw new NotFoundError("No hay stock de ese producto en esa ubicación")
+    }
     return c.json(result)
   },
 )

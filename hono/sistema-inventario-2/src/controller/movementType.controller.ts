@@ -34,7 +34,7 @@ export const create = factory.createHandlers(
         description: description,
         sign: sign,
       })
-      return c.json(row)
+      return c.json(row, 201)
     } catch (err) {
       if (isUniqueConstraintError(err)) {
         throw new ConflictError(
@@ -72,7 +72,7 @@ export const deleteByCode = factory.createHandlers(
       if (!row) {
         throw new NotFoundError("Movimiento no encontrado")
       }
-      return c.json({ messaje: "Eliminado correctamente\." })
+      return c.json({ messaje: "Eliminado correctamente" })
     } catch (err) {
       if (isForeignKeyError(err)) {
         throw new ConflictError(

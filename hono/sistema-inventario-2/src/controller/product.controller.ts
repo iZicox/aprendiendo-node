@@ -18,9 +18,9 @@ export const create = factory.createHandlers(
   async (c) => {
     const { sku } = c.req.valid("json")
     const newProduct = await makeService(c.env.DB).productRepo.create({ sku })
-    return c.json(newProduct)
+    return c.json(newProduct, 201)
   },
 )
 export const getAll = factory.createHandlers(async (c) => {
-  const result = await makeService(c.env.DB).productRepo.getAll()
+  //const result = await makeService(c.env.DB).productRepo.getAll()
 })
