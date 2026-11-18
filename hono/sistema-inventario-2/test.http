@@ -76,3 +76,16 @@ GET http://127.0.0.1:8787/api/stock/locations/2/total
 GET http://127.0.0.1:8787/api/stock/locations/2/products/1
 ###
 GET http://127.0.0.1:8787/api/stock/sku/DRV-24V-100W
+###
+GET http://127.0.0.1:8787/api/products?page=&pageSize=
+###
+GET http://127.0.0.1:8787/api/products/sku/nuevo
+###
+POST http://127.0.0.1:8787/api/products
+Content-Type: application/json
+
+{
+    "sku": "nuevo"
+}
+###
+DELETE http://127.0.0.1:8787/api/products/1

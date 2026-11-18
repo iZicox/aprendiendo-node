@@ -1,7 +1,8 @@
 import { DrizzleD1Database } from "drizzle-orm/d1"
-import { NewProduct } from "../lib/types"
+import { NewProduct, Pagination } from "../lib/types"
 import { product, stock } from "../db/schema"
-import { asc, eq, sum } from "drizzle-orm"
+import { asc, count, eq } from "drizzle-orm"
+import { sumQty, toOffset, toPage } from "../lib/utils"
 
 export class ProductRepository {
   private db: DrizzleD1Database
@@ -15,43 +16,50 @@ export class ProductRepository {
     return row
   }
   // GET /products
-  async getAll(pageSize: number, offset: number) {
-    return await this.db
-      .select({
-        sku: product.sku,
-        stock: sum(stock.quantity),
-      })
-      .from(stock)
-      .innerJoin(product, eq(product.id, stock.productId))
-      .groupBy(product.sku)
-      .orderBy(asc(product.sku))
-      .limit(pageSize)
-      .offset(offset)
+  async getAll(opts: Pagination) {
+    const [items, [{ total }]] = await this.db.batch([
+      this.db
+        .select({
+          id: product.id,
+          sku: product.sku,
+          stock: sumQty,
+        })
+        .from(product)
+        .leftJoin(stock, eq(product.id, stock.productId))
+        .groupBy(product.sku, product.id)
+        .orderBy(asc(product.sku))
+        .limit(opts.pageSize)
+        .offset(toOffset(opts)),
+      this.db.select({ total: count() }).from(product),
+    ])
+    return toPage(items, total, opts)
   }
   // GET /products/:id
   async getById(id: number) {
     const [row] = await this.db
       .select({
+        id: product.id,
         sku: product.sku,
-        stock: sum(stock.quantity),
+        stock: sumQty,
       })
-      .from(stock)
-      .innerJoin(product, eq(product.id, stock.productId))
+      .from(product)
+      .leftJoin(stock, eq(product.id, stock.productId))
       .where(eq(product.id, id))
-      .groupBy(product.sku)
+      .groupBy(product.sku, product.id)
     return row
   }
   // GET /products/:sku
   async getBySku(sku: string) {
     const [row] = await this.db
       .select({
+        id: product.id,
         sku: product.sku,
-        stock: sum(stock.quantity),
+        stock: sumQty,
       })
-      .from(stock)
-      .innerJoin(product, eq(product.id, stock.productId))
+      .from(product)
+      .leftJoin(stock, eq(product.id, stock.productId))
       .where(eq(product.sku, sku))
-      .groupBy(product.sku)
+      .groupBy(product.sku, product.id)
     return row
   }
   // DELETE /products/:id
