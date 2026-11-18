@@ -115,3 +115,26 @@ export const movementQuery = z
   .refine((q) => !q.from || !q.to || q.from < q.to, {
     message: "'from' debe ser anterior a 'to'",
   })
+export const transferIdSchemeParam = z.object({
+  transferId: z.string().min(1),
+})
+const queryDateSchema = z.iso.datetime({ offset: true }).pipe(z.coerce.date())
+
+export const movementSummaryQuerySchema = z
+  .object({
+    from: queryDateSchema,
+    to: queryDateSchema,
+  })
+  .refine(({ from, to }) => from.getTime() < to.getTime(), {
+    message: "La fecha 'to' debe ser posterior a 'from'",
+    path: ["to"],
+  })
+
+export type MovementSummaryQuery = z.output<typeof movementSummaryQuerySchema>
+export const newMovementSchemeBody = z.object({
+  productId: idSchema,
+  locationId: idSchema,
+  typeCode: codeScheme,
+  quantity: z.coerce.number().int().positive(),
+  note: z.string().optional(),
+})
