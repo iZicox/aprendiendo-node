@@ -131,6 +131,7 @@ export const movementSummaryQuerySchema = z
   })
 
 export type MovementSummaryQuery = z.output<typeof movementSummaryQuerySchema>
+
 export const newMovementSchemeBody = z.object({
   productId: idSchema,
   locationId: idSchema,
@@ -138,3 +139,13 @@ export const newMovementSchemeBody = z.object({
   quantity: z.coerce.number().int().positive(),
   note: z.string().optional(),
 })
+
+export const newTransferSchemeBody = z.object({
+  productId: idSchema,
+  fromLocationId: idSchema,
+  toLocationId: idSchema,
+  quantity: z.coerce.number().int().positive(),
+  note: z.string().optional(),
+})
+
+export type TransferMovement = z.output<typeof newTransferSchemeBody>

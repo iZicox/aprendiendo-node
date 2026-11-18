@@ -4,7 +4,6 @@ import {
   and,
   asc,
   count,
-  createTableRelationsHelpers,
   desc,
   eq,
   gte,
@@ -13,7 +12,7 @@ import {
 } from "drizzle-orm"
 import { location, movement, movementType, product, stock } from "../db/schema"
 import { formatMadrid, toOffset, toPage } from "../lib/utils"
-import { sign } from "hono/jwt"
+import { TransferMovement } from "../schema/globalSchemeZod"
 
 export class MovementRepository {
   private db: DrizzleD1Database
@@ -95,10 +94,10 @@ export class MovementRepository {
       .select({
         id: movement.id,
         createdAt: movement.createdAt,
-        quantity: movement.quantity,
-        type: { id: movement.id, code: movement.movementTypeCode },
-        location: { id: location.id, code: location.code },
         sku: product.sku,
+        quantity: movement.quantity,
+        typeCode: movement.movementTypeCode,
+        location: { id: location.id, code: location.code },
       })
       .from(movement)
       .innerJoin(product, eq(product.id, movement.productId))
@@ -164,13 +163,7 @@ export class MovementRepository {
   }
 
   // POST /transfers
-  async createTransfer(data: {
-    productId: number
-    fromLocationId: number
-    toLocationId: number
-    quantity: number
-    note?: string
-  }) {
+  async createTransfer(data: TransferMovement) {
     const transferId = crypto.randomUUID()
 
     const [out, inn] = await this.db.batch([
@@ -192,7 +185,7 @@ export class MovementRepository {
           locationId: data.toLocationId,
           movementTypeCode: "TRANSFER_IN",
           quantity: data.quantity,
-          transferId,
+          transferId: transferId,
           note: data.note,
         })
         .returning({ id: movement.id }),

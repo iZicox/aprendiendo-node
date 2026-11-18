@@ -7,8 +7,10 @@ import {
   idSchemaParam,
   movementSummaryQuerySchema,
   newMovementSchemeBody,
+  newTransferSchemeBody,
   paginationSchema,
   transferIdSchemeParam,
+  TransferMovement,
 } from "../schema/globalSchemeZod"
 import {
   ConflictError,
@@ -90,4 +92,13 @@ export const create = factory.createHandlers(
       throw err
     }
   },
+)
+
+export const createTransfer = factory.createHandlers(
+  zValidator("json", newTransferSchemeBody),
+  async (c) => {
+    const body: TransferMovement = c.req.valid("json")
+    const result = await makeService(c.env.DB).movementRepo.createTransfer(body)
+    return c.json(result)
+  }
 )

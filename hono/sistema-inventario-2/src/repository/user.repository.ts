@@ -50,6 +50,5 @@ export class UserRepository {
       .update(users)
       .set({ role: role })
       .where(eq(users.id, userId))
-      .returning()
   }
 }

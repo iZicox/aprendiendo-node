@@ -4,6 +4,14 @@ import { and, asc, count, eq, gt } from "drizzle-orm"
 import { Pagination } from "../lib/types"
 import { sumQty, toOffset, toPage } from "../lib/utils"
 
+const stockFields = {
+  productId: stock.productId,
+  locationId: stock.locationId,
+  sku: product.sku,
+  locationCode: location.code,
+  quantity: stock.quantity,
+}
+
 export class StockRepository {
   private db: DrizzleD1Database
   constructor(db: DrizzleD1Database) {
@@ -16,13 +24,7 @@ export class StockRepository {
   async getAll(opts: Pagination) {
     const [items, [{ total }]] = await this.db.batch([
       this.db
-        .select({
-          productId: stock.productId,
-          locationId: stock.locationId,
-          sku: product.sku,
-          locationCode: location.code,
-          quantity: stock.quantity,
-        })
+        .select(stockFields)
         .from(stock)
         .innerJoin(product, eq(product.id, stock.productId))
         .innerJoin(location, eq(location.id, stock.locationId))
@@ -86,13 +88,7 @@ export class StockRepository {
   // total de inventario de un producto en todas sus ubicaciones
   async getByProduct(productId: number) {
     const row = await this.db
-      .select({
-        productId: stock.productId,
-        locationId: stock.locationId,
-        sku: product.sku,
-        locationCode: location.code,
-        quantity: stock.quantity,
-      })
+      .select(stockFields)
       .from(stock)
       .innerJoin(product, eq(product.id, stock.productId))
       .innerJoin(location, eq(location.id, stock.locationId))
@@ -122,13 +118,7 @@ export class StockRepository {
   async getByLocation(locationId: number, opts: Pagination) {
     const [items, [{ total }]] = await this.db.batch([
       this.db
-        .select({
-          productId: stock.productId,
-          locationId: stock.locationId,
-          sku: product.sku,
-          locationCode: location.code,
-          quantity: stock.quantity,
-        })
+        .select(stockFields)
         .from(stock)
         .innerJoin(product, eq(product.id, stock.productId))
         .innerJoin(location, eq(location.id, stock.locationId))
@@ -165,13 +155,7 @@ export class StockRepository {
   // producto en una ubicacion
   async getProductInLocation(productId: number, locationId: number) {
     const [row] = await this.db
-      .select({
-        productId: stock.productId,
-        locationId: stock.locationId,
-        sku: product.sku,
-        locationCode: location.code,
-        quantity: stock.quantity,
-      })
+      .select(stockFields)
       .from(stock)
       .innerJoin(product, eq(product.id, stock.productId))
       .innerJoin(location, eq(location.id, stock.locationId))
@@ -184,13 +168,7 @@ export class StockRepository {
   // GET /stock/sku/:sku
   async getBySku(sku: string) {
     return this.db
-      .select({
-        productId: stock.productId,
-        locationId: stock.locationId,
-        sku: product.sku,
-        locationCode: location.code,
-        quantity: stock.quantity,
-      })
+      .select(stockFields)
       .from(stock)
       .innerJoin(product, eq(product.id, stock.productId))
       .innerJoin(location, eq(location.id, stock.locationId))
