@@ -10,7 +10,11 @@ import {
   paginationSchema,
   transferIdSchemeParam,
 } from "../schema/globalSchemeZod"
-import { NotFoundError } from "../lib/errors"
+import {
+  ConflictError,
+  isUniqueConstraintError,
+  NotFoundError,
+} from "../lib/errors"
 
 const factory = createFactory<AppEnv>()
 const makeService = (d1: D1Database) => {
@@ -76,5 +80,14 @@ export const create = factory.createHandlers(
   zValidator("json", newMovementSchemeBody),
   async (c) => {
     const body = c.req.valid("json")
+    try {
+      const result = await makeService(c.env.DB).movementRepo.create(body)
+      return c.json(result)
+    } catch (err) {
+      if (isUniqueConstraintError(err)) {
+        throw new ConflictError("Error en la base de datos")
+      }
+      throw err
+    }
   },
 )
