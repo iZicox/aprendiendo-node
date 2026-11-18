@@ -12,6 +12,7 @@
     "db:reset:local": "rm -rf .wrangler/state && npm run db:apply:local && npm run db:seed:local",
     "db:apply:remote": "wrangler d1 migrations apply database --remote",
     "db:seed:remote": "wrangler d1 execute database --remote --file=./seed.sql",
+    "db:query:local": "wrangler d1 execute database --local --command=",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit"
