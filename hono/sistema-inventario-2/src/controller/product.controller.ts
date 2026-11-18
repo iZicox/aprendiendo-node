@@ -1,10 +1,9 @@
 import { createFactory } from "hono/factory"
-import { AppEnv, NewProduct } from "../lib/types"
+import { AppEnv } from "../lib/types"
 import { drizzle } from "drizzle-orm/d1"
 import { ProductRepository } from "../repository/product.repository"
 import { zValidator } from "@hono/zod-validator"
 import { newProductSchemaBody } from "../schema/productSchemaZod"
-import { product } from "../db/schema"
 
 const factory = createFactory<AppEnv>()
 const makeService = (d1: D1Database) => {
@@ -21,6 +20,6 @@ export const create = factory.createHandlers(
     return c.json(newProduct, 201)
   },
 )
-export const getAll = factory.createHandlers(async (c) => {
+export const getAll = factory.createHandlers(async () => {
   //const result = await makeService(c.env.DB).productRepo.getAll()
 })

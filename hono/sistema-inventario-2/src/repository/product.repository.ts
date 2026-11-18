@@ -1,6 +1,5 @@
 import { DrizzleD1Database } from "drizzle-orm/d1"
 import { NewProduct } from "../lib/types"
-import { deleteById } from "../controller/location.controller"
 import { product, stock } from "../db/schema"
 import { asc, eq, sum } from "drizzle-orm"
 

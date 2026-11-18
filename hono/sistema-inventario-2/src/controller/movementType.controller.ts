@@ -14,7 +14,6 @@ import {
   NotFoundError,
 } from "../lib/errors"
 import { codeSchemeParam } from "../schema/locationSchemaZod"
-import { idSchemaParam } from "../schema/globalSchemeZod"
 
 const factory = createFactory<AppEnv>()
 

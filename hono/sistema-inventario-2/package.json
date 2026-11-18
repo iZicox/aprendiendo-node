@@ -11,7 +11,10 @@
     "db:seed:local": "wrangler d1 execute database --local --file=./seed-example.sql",
     "db:reset:local": "rm -rf .wrangler/state && npm run db:apply:local && npm run db:seed:local",
     "db:apply:remote": "wrangler d1 migrations apply database --remote",
-    "db:seed:remote": "wrangler d1 execute database --remote --file=./seed.sql"
+    "db:seed:remote": "wrangler d1 execute database --remote --file=./seed.sql",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.9.1",
@@ -21,9 +24,11 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "drizzle-kit": "^0.31.11",
-    "standard": "^17.1.2",
-    "typescript": "^7.0.2",
+    "eslint": "^10.15.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.73.0",
     "wrangler": "^4.110.0"
   }
 }

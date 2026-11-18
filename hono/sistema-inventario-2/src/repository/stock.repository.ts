@@ -1,6 +1,6 @@
 import { DrizzleD1Database } from "drizzle-orm/d1"
 import { location, product, stock } from "../db/schema"
-import { and, asc, count, eq, gt, sql, sum } from "drizzle-orm"
+import { and, asc, count, eq, gt, sql } from "drizzle-orm"
 import { Pagination } from "../lib/types"
 
 const sumQty = sql<number>`coalesce(sum(${stock.quantity}), 0)`

@@ -43,13 +43,11 @@ export const getTotal = factory.createHandlers(async (c) => {
 export const getTotalsByProduct = factory.createHandlers(
   zValidator("query", paginationSchema),
   async (c) => {
-    console.log("entro")
     const { page, pageSize } = c.req.valid("query")
     const result = await makeServices(c.env.DB).stockRepo.getTotalsByProduct({
       page: page,
       pageSize: pageSize,
     })
-    console.log("consulta")
     return c.json(result)
   },
 )

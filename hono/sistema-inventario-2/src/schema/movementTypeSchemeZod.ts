@@ -1,6 +1,5 @@
 import z from "zod"
 import { codeScheme } from "./globalSchemeZod"
-import { sign } from "hono/jwt"
 
 export const createMovementTypeBodyScheme = z.object({
   code: codeScheme,
