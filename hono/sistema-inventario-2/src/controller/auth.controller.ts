@@ -11,7 +11,7 @@ import {
   createUserSchemeBody,
   loginUserSchemeBody,
   updateRoleSchema,
-} from "../schema/userSchemaZod"
+} from "../schema/globalSchemeZod"
 import { Hasher } from "../security/Hasher"
 //import { HasherBcryptImpl } from "../security/HasherBcryptImpl"
 import { Pbkdf2PasswordHasher } from "../security/HasherPbkdf2Impl"

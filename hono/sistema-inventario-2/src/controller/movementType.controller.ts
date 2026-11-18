@@ -4,16 +4,16 @@ import { drizzle } from "drizzle-orm/d1"
 import { MovementTypeRepository } from "../repository/movementType.repository"
 import { zValidator } from "@hono/zod-validator"
 import {
+  codeSchemeParam,
   createMovementTypeBodyScheme,
   updateMovementTypeBodyScheme,
-} from "../schema/movementTypeSchemeZod"
+} from "../schema/globalSchemeZod"
 import {
   ConflictError,
   isForeignKeyError,
   isUniqueConstraintError,
   NotFoundError,
 } from "../lib/errors"
-import { codeSchemeParam } from "../schema/locationSchemaZod"
 
 const factory = createFactory<AppEnv>()
 

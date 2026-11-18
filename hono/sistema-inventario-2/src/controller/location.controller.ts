@@ -6,7 +6,7 @@ import { zValidator } from "@hono/zod-validator"
 import {
   codeSchemeParam,
   createLocationBodyScheme,
-} from "../schema/locationSchemaZod"
+} from "../schema/globalSchemeZod"
 import {
   ConflictError,
   isForeignKeyError,

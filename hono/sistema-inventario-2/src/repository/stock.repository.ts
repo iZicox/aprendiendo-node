@@ -1,21 +1,8 @@
 import { DrizzleD1Database } from "drizzle-orm/d1"
 import { location, product, stock } from "../db/schema"
-import { and, asc, count, eq, gt, sql } from "drizzle-orm"
+import { and, asc, count, eq, gt } from "drizzle-orm"
 import { Pagination } from "../lib/types"
-
-const sumQty = sql<number>`coalesce(sum(${stock.quantity}), 0)`
-const toOffset = (opts: Pagination) => {
-  return (opts.page - 1) * opts.pageSize
-}
-const toPage = <T>(items: T[], total: number, opts: Pagination) => {
-  return {
-    items,
-    page: opts.page,
-    pageSize: opts.pageSize,
-    total,
-    totalPage: Math.ceil(total / opts.pageSize),
-  }
-}
+import { sumQty, toOffset, toPage } from "../lib/utils"
 
 export class StockRepository {
   private db: DrizzleD1Database

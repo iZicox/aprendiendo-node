@@ -9,7 +9,7 @@ import {
   productIdSchemeParam,
   productInLocationParam,
   skuParam,
-} from "../schema/stockSchemeZod"
+} from "../schema/globalSchemeZod"
 import { NotFoundError } from "../lib/errors"
 import { LocationRepository } from "../repository/location.repository"
 import { ProductRepository } from "../repository/product.repository"
