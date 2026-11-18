@@ -89,3 +89,5 @@ Content-Type: application/json
 }
 ###
 DELETE http://127.0.0.1:8787/api/products/1
+###
+GET http://127.0.0.1:8787/api/movements?pageSize=5

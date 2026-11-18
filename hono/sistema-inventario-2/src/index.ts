@@ -6,6 +6,7 @@ import { locationRoute } from "./route/location.route"
 import { movementTypeRoute } from "./route/movementType.route"
 import { stockRoute } from "./route/stock.route"
 import { productRoute } from "./route/product.route"
+import { movementRoute } from "./route/movement.route"
 
 const app = new Hono<AppEnv>()
   .basePath("/api")
@@ -14,6 +15,7 @@ const app = new Hono<AppEnv>()
   .route("/movement-type", movementTypeRoute)
   .route("/stock", stockRoute)
   .route("/products", productRoute)
+  .route("/movements", movementRoute)
 
   .onError(errorHandler)
   .notFound((c) => c.json({ error: "Ruta no encontrada" }, 404))

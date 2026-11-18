@@ -15,6 +15,20 @@
       "when": 1794826430309,
       "tag": "0001_sparkling_shotgun",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1794999056132,
+      "tag": "0002_stiff_havok",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1795007026825,
+      "tag": "0003_nosy_glorian",
+      "breakpoints": true
     }
   ]
 }

@@ -9,7 +9,7 @@ DELETE FROM product;
 DELETE FROM sqlite_sequence WHERE name IN ('movement','product','users');
 
 -- ─────────────────────────────────────────────
--- Catálogos base
+-- Catálogos base (created_at = default unixepoch())
 -- ─────────────────────────────────────────────
 INSERT OR IGNORE INTO movement_type (code, description, sign) VALUES
   ('ENTRY',        'Entrada de mercancía (compra a proveedor)',  1),
@@ -26,7 +26,7 @@ INSERT OR IGNORE INTO location (code) VALUES
   ('ALMACEN-2');
 
 -- ─────────────────────────────────────────────
--- Productos
+-- Productos (created_at / updated_at = default unixepoch())
 -- ─────────────────────────────────────────────
 INSERT INTO product (id, sku) VALUES
   (1, 'DRV-24V-100W'),
@@ -38,6 +38,7 @@ INSERT INTO product (id, sku) VALUES
 
 -- ─────────────────────────────────────────────
 -- Movimientos (se resuelve location por code)
+-- created_at en unix time (segundos, UTC)
 -- ─────────────────────────────────────────────
 WITH v(op, pid, loc, type, qty, tr, note, off) AS (VALUES
   ('op-0001', 1, 'ALMACEN-1', 'ENTRY',        200, NULL,     'Compra proveedor PO-1001',     '-30 days'),
@@ -66,11 +67,12 @@ WITH v(op, pid, loc, type, qty, tr, note, off) AS (VALUES
   ('op-0018', 5, 'ALMACEN-1', 'EXIT',          50, NULL,     'Pedido proyecto SO-2006',      '-2 days')
 )
 INSERT INTO movement (operation_id, product_id, location_id, movement_type_code, quantity, transfer_id, note, created_at)
-SELECT v.op, v.pid, l.id, v.type, v.qty, v.tr, v.note, datetime('now', v.off)
+SELECT v.op, v.pid, l.id, v.type, v.qty, v.tr, v.note, unixepoch('now', v.off)
 FROM v JOIN location l ON l.code = v.loc;
 
 -- ─────────────────────────────────────────────
 -- Stock: proyección calculada desde movement
+-- (updated_at = default unixepoch())
 -- ─────────────────────────────────────────────
 INSERT INTO stock (product_id, location_id, quantity)
 SELECT m.product_id, m.location_id, SUM(m.quantity * t.sign)
@@ -86,6 +88,6 @@ INSERT INTO users (email, password_hash, role) VALUES
   ('user@test.local',  'REEMPLAZAR_HASH_USER',  'user');
 
 INSERT INTO refresh_tokens (token, user_id, expires_at) VALUES
-  ('rt-admin-valid',  (SELECT id FROM users WHERE email='admin@test.local'), CAST(strftime('%s','now','+7 days') AS INTEGER)),
-  ('rt-user-valid',   (SELECT id FROM users WHERE email='user@test.local'),  CAST(strftime('%s','now','+7 days') AS INTEGER)),
-  ('rt-user-expired', (SELECT id FROM users WHERE email='user@test.local'),  CAST(strftime('%s','now','-1 day')  AS INTEGER));
+  ('rt-admin-valid',  (SELECT id FROM users WHERE email='admin@test.local'), unixepoch('now', '+7 days')),
+  ('rt-user-valid',   (SELECT id FROM users WHERE email='user@test.local'),  unixepoch('now', '+7 days')),
+  ('rt-user-expired', (SELECT id FROM users WHERE email='user@test.local'),  unixepoch('now', '-1 day'));

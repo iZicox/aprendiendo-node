@@ -54,3 +54,14 @@ export type NewProduct = typeof product.$inferInsert
  */
 
 export type Pagination = { page: number; pageSize: number }
+
+/**
+ *  MOVEMENT TYPES
+ */
+export type MovementFilters = {
+  productId?: number
+  locationId?: number
+  typeCode?: string
+  from?: Date
+  to?: Date
+}

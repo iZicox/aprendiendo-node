@@ -99,3 +99,19 @@ export const productInLocationParam = locationIdSchemeParam.extend(
 export const skuParam = z.object({
   sku: z.string().trim().min(1).toUpperCase(),
 })
+/**
+ * MOVEMENT SCHEME
+ */
+export const movementQuery = z
+  .object({
+    page: z.coerce.number().int().min(1).default(1),
+    pageSize: z.coerce.number().int().min(1).max(100).default(20),
+    productId: z.coerce.number().int().positive().optional(),
+    locationId: z.coerce.number().int().positive().optional(),
+    typeCode: z.string().optional(),
+    from: z.coerce.date().optional(),
+    to: z.coerce.date().optional(),
+  })
+  .refine((q) => !q.from || !q.to || q.from < q.to, {
+    message: "'from' debe ser anterior a 'to'",
+  })

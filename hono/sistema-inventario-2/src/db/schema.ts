@@ -9,6 +9,16 @@ import {
   uniqueIndex,
 } from "drizzle-orm/sqlite-core"
 
+const createdAt = () =>
+  integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`)
+const updatedAt = () =>
+  integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`)
+    .$onUpdate(() => new Date())
+
 // ─────────────────────────────────────────────────────────────
 // movement_type — catálogo de tipos. Extensible por INSERT.
 // ─────────────────────────────────────────────────────────────
@@ -18,13 +28,9 @@ export const movementType = sqliteTable(
     code: text("code").primaryKey(), // 'ENTRY', 'EXIT', ...
     description: text("description").notNull(),
     sign: integer("sign").notNull(), // 1 = suma, -1 = resta
-    createdAt: text("created_at")
-      .notNull()
-      .default(sql`(datetime('now'))`),
+    createdAt: createdAt(),
   },
-  (table) => [
-    check("movement_type_sign_check", sql`${table.sign} IN (1, -1)`),
-  ],
+  (table) => [check("movement_type_sign_check", sql`${table.sign} IN (1, -1)`)],
 )
 
 // ─────────────────────────────────────────────────────────────
@@ -33,9 +39,7 @@ export const movementType = sqliteTable(
 export const location = sqliteTable("location", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   code: text("code").notNull().unique(),
-  createdAt: text("created_at")
-    .notNull()
-    .default(sql`(datetime('now'))`),
+  createdAt: createdAt(),
 })
 
 // ─────────────────────────────────────────────────────────────
@@ -44,13 +48,8 @@ export const location = sqliteTable("location", {
 export const product = sqliteTable("product", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   sku: text("sku").notNull().unique(),
-  createdAt: text("created_at")
-    .notNull()
-    .default(sql`(datetime('now'))`),
-  updatedAt: text("updated_at")
-    .notNull()
-    .default(sql`(datetime('now'))`)
-    .$onUpdate(() => sql`(datetime('now'))`),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
 })
 
 // ─────────────────────────────────────────────────────────────
@@ -75,9 +74,8 @@ export const movement = sqliteTable(
     quantity: integer("quantity").notNull(),
     transferId: text("transfer_id"),
     note: text("note"),
-    createdAt: text("created_at")
-      .notNull()
-      .default(sql`(datetime('now'))`),
+    fecha: updatedAt(),
+    createdAt: createdAt(),
   },
   (table) => [
     index("idx_movement_product").on(table.productId, table.createdAt),
@@ -109,10 +107,7 @@ export const stock = sqliteTable(
       .notNull()
       .references(() => location.id),
     quantity: integer("quantity").notNull().default(0),
-    updatedAt: text("updated_at")
-      .notNull()
-      .default(sql`(datetime('now'))`)
-      .$onUpdate(() => sql`(datetime('now'))`),
+    updatedAt: updatedAt(),
   },
   (table) => [
     primaryKey({ columns: [table.productId, table.locationId] }),
@@ -130,9 +125,7 @@ export const users = sqliteTable(
     role: text("role", { enum: ["admin", "user"] })
       .notNull()
       .default("user"),
-    createdAt: text("created_at")
-      .notNull()
-      .default(sql`(datetime('now'))`),
+    createdAt: createdAt(),
   },
   (table) => [
     check("users_role_check", sql`${table.role} IN ('admin', 'user')`),
