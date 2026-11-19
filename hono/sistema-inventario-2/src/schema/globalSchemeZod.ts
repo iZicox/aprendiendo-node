@@ -140,12 +140,17 @@ export const newMovementSchemeBody = z.object({
   note: z.string().optional(),
 })
 
-export const newTransferSchemeBody = z.object({
-  productId: idSchema,
-  fromLocationId: idSchema,
-  toLocationId: idSchema,
-  quantity: z.coerce.number().int().positive(),
-  note: z.string().optional(),
-})
+export const newTransferSchemeBody = z
+  .object({
+    productId: z.number().int().positive(),
+    fromLocationId: z.number().int().positive(),
+    toLocationId: z.number().int().positive(),
+    quantity: z.number().int().positive(),
+    note: z.string().optional(),
+  })
+  .refine((d) => d.fromLocationId !== d.toLocationId, {
+    message: "El origen y el destino deben ser distintos",
+    path: ["toLocationId"],
+  })
 
 export type TransferMovement = z.output<typeof newTransferSchemeBody>

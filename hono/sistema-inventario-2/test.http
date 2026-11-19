@@ -18,11 +18,18 @@ Content-Type: application/json
     "password": "12345678"
 }
 ###
+POST http://127.0.0.1:8787/api/auth/refresh
+ Cookie: {{cookie}}
+###
 @cookie = {{login.response.headers.Set-Cookie}}
 GET http://127.0.0.1:8787/api/auth/me
  Cookie: {{cookie}}
+
 ###
 POST http://127.0.0.1:8787/api/auth/logout
+###
+GET http://127.0.0.1:8787/api/movement-type
+Cookie: {{cookie}}
 ###
 GET http://127.0.0.1:8787/api/locations
 Cookie: {{cookie}}
@@ -39,7 +46,7 @@ Cookie: {{cookie}}
 GET http://127.0.0.1:8787/api/locations/code/almacen-21
 Cookie: {{cookie}}
 ###
-DELETE http://127.0.0.1:8787/api/locations/6
+DELETE http://127.0.0.1:8787/api/locations/3
 Cookie: {{cookie}}
 ### 
 # @name create
@@ -48,7 +55,7 @@ Cookie: {{cookie}}
 Content-Type: application/json
 
 {
-    "code": "nuevo"
+    "code": "nuevo-ALMACEN"
 }
 ###
 @id = {{create.response.body.$.id}}
@@ -58,36 +65,86 @@ Cookie: {{cookie}}
 GET http://127.0.0.1:8787/api/stock?pageSize=&page=
 Cookie: {{cookie}}
 ###
-GET http://127.0.0.1:8787/api/stock/total
+GET http://127.0.0.1:8787/api/stock/total 
 Cookie: {{cookie}}
 ###
 GET http://127.0.0.1:8787/api/stock/by-product?page=&pageSize=
+Cookie: {{cookie}}
 ###
 GET http://127.0.0.1:8787/api/stock/by-location
+Cookie: {{cookie}}
 ###
 GET http://127.0.0.1:8787/api/stock/products/1
+Cookie: {{cookie}}
 ###
 GET http://127.0.0.1:8787/api/stock/products/1/total
+Cookie: {{cookie}}
 ###
 GET http://127.0.0.1:8787/api/stock/locations/1
+Cookie: {{cookie}}
 ###
 GET http://127.0.0.1:8787/api/stock/locations/2/total
+Cookie: {{cookie}}
 ###
-GET http://127.0.0.1:8787/api/stock/locations/2/products/1
+GET http://127.0.0.1:8787/api/stock/locations/2/products/2
+Cookie: {{cookie}}
 ###
 GET http://127.0.0.1:8787/api/stock/sku/DRV-24V-100W
+Cookie: {{cookie}}
 ###
 GET http://127.0.0.1:8787/api/products?page=&pageSize=
 ###
 GET http://127.0.0.1:8787/api/products/sku/nuevo
 ###
+# @name newProduct
 POST http://127.0.0.1:8787/api/products
 Content-Type: application/json
 
 {
-    "sku": "nuevo"
+    "sku": "nuevo2"
 }
 ###
-DELETE http://127.0.0.1:8787/api/products/1
+@idNewProduct = {{newProduct.response.body.$.id}}
+DELETE http://127.0.0.1:8787/api/products/{{idNewProduct}}
 ###
-GET http://127.0.0.1:8787/api/movements?pageSize=5
+GET http://127.0.0.1:8787/api/movements?pageSize=
+###
+GET http://127.0.0.1:8787/api/movements/summary-type?from=2026-11-15T08:12:51.908Z&to=2026-11-19T08:14:33.019Z
+###
+@transferId = 3ce50971-9191-41d4-95cd-fa16edb270b0
+GET http://127.0.0.1:8787/api/movements/transfers/{{transferId}}
+###
+GET http://127.0.0.1:8787/api/movements/23
+###
+POST http://127.0.0.1:8787/api/movements
+Content-Type: application/json
+
+{
+    "productId": 1,
+    "locationId": 4,
+    "typeCode": "EXIT",
+    "quantity": 500,
+    "note": "PRUEBA"
+}
+###
+POST http://127.0.0.1:8787/api/movements
+Content-Type: application/json
+
+{
+    "productId": 1,
+    "locationId": 4,
+    "typeCode": "ENTRY",
+    "quantity": 50000,
+    "note": "PRUEBA"
+}
+###
+POST http://127.0.0.1:8787/api/movements/transfers
+Content-Type: application/json
+
+{
+    "productId": 1,
+    "fromLocationId": 4,
+    "toLocationId": 20,
+    "quantity": 10,
+    "note": "prueba"
+}

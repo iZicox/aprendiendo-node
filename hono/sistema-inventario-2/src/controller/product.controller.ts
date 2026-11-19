@@ -9,7 +9,12 @@ import {
   skuParam,
 } from "../schema/globalSchemeZod"
 import { idSchemaParam } from "../schema/globalSchemeZod"
-import { ConflictError, isForeignKeyError, NotFoundError } from "../lib/errors"
+import {
+  ConflictError,
+  isForeignKeyError,
+  isUniqueConstraintError,
+  NotFoundError,
+} from "../lib/errors"
 
 const factory = createFactory<AppEnv>()
 const makeService = (d1: D1Database) => {
@@ -23,8 +28,15 @@ export const create = factory.createHandlers(
   zValidator("json", newProductSchemaBody),
   async (c) => {
     const { sku } = c.req.valid("json")
-    const newProduct = await makeService(c.env.DB).productRepo.create({ sku })
-    return c.json(newProduct, 201)
+    try {
+      const newProduct = await makeService(c.env.DB).productRepo.create({ sku })
+      return c.json(newProduct, 201)
+    } catch (err) {
+      if (isUniqueConstraintError(err)) {
+        throw new ConflictError("Ya existe un producto con ese SKU")
+      }
+      throw err
+    }
   },
 )
 // GET /products

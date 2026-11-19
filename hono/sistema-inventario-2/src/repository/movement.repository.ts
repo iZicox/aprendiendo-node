@@ -1,15 +1,6 @@
 import { DrizzleD1Database } from "drizzle-orm/d1"
 import { MovementFilters, Pagination } from "../lib/types"
-import {
-  and,
-  asc,
-  count,
-  desc,
-  eq,
-  gte,
-  lt,
-  sql,
-} from "drizzle-orm"
+import { and, asc, count, desc, eq, gte, lt, sql } from "drizzle-orm"
 import { location, movement, movementType, product, stock } from "../db/schema"
 import { formatMadrid, toOffset, toPage } from "../lib/utils"
 import { TransferMovement } from "../schema/globalSchemeZod"
@@ -124,14 +115,45 @@ export class MovementRepository {
   }
 
   // POST /movements
-  async create(data: {
-    productId: number
-    locationId: number
-    typeCode: string
-    quantity: number
-    note?: string
-  }) {
-    const delta = sql<number>`${data.quantity} * (select sign from movement_type where code = ${data.typeCode})`
+  async create(
+    data: {
+      productId: number
+      locationId: number
+      typeCode: string
+      quantity: number
+      note?: string
+    },
+    sign: number,
+  ) {
+    const delta = data.quantity * sign
+    const whereStock = and(
+      eq(stock.productId, data.productId),
+      eq(stock.locationId, data.locationId),
+    )
+
+    const stockQuery =
+      delta < 0
+        ? this.db
+            .update(stock)
+            .set({
+              quantity: sql`${stock.quantity} + ${delta}`,
+              updatedAt: new Date(),
+            })
+            .where(whereStock)
+        : this.db
+            .insert(stock)
+            .values({
+              productId: data.productId,
+              locationId: data.locationId,
+              quantity: delta,
+            })
+            .onConflictDoUpdate({
+              target: [stock.productId, stock.locationId],
+              set: {
+                quantity: sql`${stock.quantity} + excluded.quantity`,
+                updatedAt: new Date(),
+              },
+            })
 
     const [inserted] = await this.db.batch([
       this.db
@@ -144,21 +166,9 @@ export class MovementRepository {
           note: data.note,
         })
         .returning({ id: movement.id }),
-      this.db
-        .insert(stock)
-        .values({
-          productId: data.productId,
-          locationId: data.locationId,
-          quantity: delta,
-        })
-        .onConflictDoUpdate({
-          target: [stock.productId, stock.locationId],
-          set: {
-            quantity: sql`${stock.quantity} + excluded.quantity`,
-            updatedAt: new Date(),
-          },
-        }),
+      stockQuery,
     ])
+
     return inserted[0]
   }
 
@@ -174,10 +184,11 @@ export class MovementRepository {
           locationId: data.fromLocationId,
           movementTypeCode: "TRANSFER_OUT",
           quantity: data.quantity,
-          transferId,
+          transferId: transferId,
           note: data.note,
         })
         .returning({ id: movement.id }),
+
       this.db
         .insert(movement)
         .values({
@@ -189,20 +200,20 @@ export class MovementRepository {
           note: data.note,
         })
         .returning({ id: movement.id }),
+
       this.db
-        .insert(stock)
-        .values({
-          productId: data.productId,
-          locationId: data.fromLocationId,
-          quantity: -data.quantity,
+        .update(stock)
+        .set({
+          quantity: sql`${stock.quantity} - ${data.quantity}`,
+          updatedAt: new Date(),
         })
-        .onConflictDoUpdate({
-          target: [stock.productId, stock.locationId],
-          set: {
-            quantity: sql`${stock.quantity} + excluded.quantity`,
-            updatedAt: new Date(),
-          },
-        }),
+        .where(
+          and(
+            eq(stock.productId, data.productId),
+            eq(stock.locationId, data.fromLocationId),
+          ),
+        ),
+
       this.db
         .insert(stock)
         .values({

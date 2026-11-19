@@ -23,7 +23,7 @@ const REFRESH_PATH = "/api/auth"
 
 const cookieBase = {
   httpOnly: true,
-  secure: true,
+  secure: false,
   sameSite: "Strict" as const,
 }
 
