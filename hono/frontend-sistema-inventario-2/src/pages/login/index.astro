@@ -1,54 +1,43 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import "../../styles/global.css";
 ---
 <Layout>
-  <form id="registro" class="max-w-sm mx-auto mt-24">
-    <h1 class="mb-6 text-2xl font-semibold text-heading">Crear cuenta</h1>
-
-    <div class="mb-5">
-      <label for="email" class="block mb-2.5 text-sm font-medium text-heading">Email</label>
-      <input type="email" id="email" name="email" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" placeholder="nombre@empresa.com" required />
+  <h1>Login</h1>
+  <div>
+        <label for="">Email: <input type="email" id="email"></label>
     </div>
-
-    <div class="mb-5">
-      <label for="password" class="block mb-2.5 text-sm font-medium text-heading">Contraseña</label>
-      <input type="password" id="password" name="password" minlength="8" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" placeholder="••••••••" required />
+    <div>
+        <label for="">Contraseña: <input type="password" id="password"></label>
     </div>
+    <button id="submit">Enviar</button>
+    
+    
+    <script>
 
-    <p id="error" class="mb-5 text-sm text-red-600" hidden></p>
+        document.getElementById("submit")?.addEventListener("click", () =>{
+            let email = document.getElementById("email") as HTMLInputElement
+            let password = document.getElementById("password") as HTMLInputElement
+            console.log("email: " + email.value + " - " + "password: " + password.value)
+            let json = async () => {
+                let peticion = {
+                        "email": email.value,
+                        "password": password.value
+                    }
+                let data = (await fetch("http://localhost:8788/api/auth/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "include",
+                    body: JSON.stringify(peticion)
+                })).json()
+                
+                console.log(data)
+                return data
+                    
+            }
 
-    <button type="submit" class="w-full text-white bg-brand hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium font-medium rounded-base text-sm px-4 py-2.5">Crear cuenta</button>
-
-    <p class="mt-5 text-sm text-center text-body">
-      ¿Ya tienes cuenta? <a href="/auth/login" class="text-fg-brand hover:underline">Inicia sesión</a>
-    </p>
-  </form>
-  <script>
-    const form = document.querySelector<HTMLFormElement>("#registro")!;
-    const error = document.querySelector<HTMLParagraphElement>("#error")!;
-  
-    form.addEventListener("submit", async (e: SubmitEvent) => {
-      e.preventDefault();
-  
-      const data = new FormData(form);
-  
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: data.get("email"),
-          password: data.get("password"),
-        }),
-      });
-  
-      if (!res.ok) {
-        error.textContent = "No se pudo crear la cuenta";
-        error.hidden = false;
-        return;
-      }
-  
-      window.location.href = "/auth/login";
-    });
-  </script>
+            json()
+        })
+    </script>
 </Layout>

@@ -7,8 +7,17 @@ import { movementTypeRoute } from "./route/movementType.route"
 import { stockRoute } from "./route/stock.route"
 import { productRoute } from "./route/product.route"
 import { movementRoute } from "./route/movement.route"
+import { cors } from "hono/cors"
 
 const app = new Hono<AppEnv>()
+  .use(
+    cors({
+      origin: (origin) => origin,
+      credentials: true,
+      allowMethods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+      allowHeaders: ["Content-Type", "Authorization"],
+    }),
+  )
   .basePath("/api")
   .route("/auth", authRoute)
   .route("/locations", locationRoute)

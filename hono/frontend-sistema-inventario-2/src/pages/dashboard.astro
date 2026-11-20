@@ -1,0 +1,15 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+export const prerender = false
+const {isLoggedIn, user} = Astro.locals
+---
+
+<Layout>
+    <h1>Dashboard</h1>
+    <p>Sesion iniciada? {isLoggedIn ? "si" : "no"}</p>
+    <h2>Usuario</h2>
+    <p>id: {user?.id ?? ""}</p>
+    <p>email: {user?.email ?? ""}</p>
+    <p>rol: {user?.role ?? ""}</p>
+</Layout>

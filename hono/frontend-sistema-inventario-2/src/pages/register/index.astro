@@ -1,0 +1,44 @@
+---
+import Layout from "../../layouts/Layout.astro";
+
+
+---
+
+<Layout>
+    <h1>Registro</h1>
+    <div>
+        <label for="">Email: <input type="email" id="email"></label>
+    </div>
+    <div>
+        <label for="">Contraseña: <input type="password" id="password"></label>
+    </div>
+    <button id="submit">Enviar</button>
+    
+    <script>
+
+        document.getElementById("submit")?.addEventListener("click", () =>{
+            let email = document.getElementById("email") as HTMLInputElement
+            let password = document.getElementById("password") as HTMLInputElement
+            console.log("email: " + email.value + " - " + "password: " + password.value)
+            let json = async () => {
+                let peticion = {
+                        "email": email.value,
+                        "password": password.value
+                    }
+                let data = (await fetch("http://localhost:8788/api/auth/register", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(peticion)
+                })).json()
+                
+                console.log(data)
+                return data
+                    
+            }
+
+            json()
+        })
+    </script>
+</Layout>
