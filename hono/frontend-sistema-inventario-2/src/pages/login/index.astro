@@ -1,43 +1,102 @@
 ---
-import Layout from "../../layouts/Layout.astro";
+import Layout from "../../layouts/Layout.astro"
+import "../../styles/global.css"
+
+const { isLoggedIn } = Astro.locals
 ---
+
 <Layout>
-  <h1>Login</h1>
-  <div>
-        <label for="">Email: <input type="email" id="email"></label>
+  <div class="w-80 rounded-lg shadow h-auto p-6 bg-white relative overflow-hidden">
+    <div class="flex flex-col justify-center items-center space-y-2">
+      <h2 class="text-2xl font-medium text-slate-700">Login</h2>
+      <p class="text-slate-500">Escribe tu usuario y contraseña.</p>
     </div>
-    <div>
-        <label for="">Contraseña: <input type="password" id="password"></label>
-    </div>
-    <button id="submit">Enviar</button>
-    
-    
-    <script>
+    <form id="login-form" method="post" class="w-full mt-4 space-y-3">
+      <div>
+        <input
+          class="outline-none border-2 rounded-md px-2 py-1 text-slate-500 w-full focus:border-blue-300"
+          placeholder="Email"
+          id="email"
+          name="email"
+          type="email"
+          autocomplete="username"
+          required
+        />
+      </div>
+      <div>
+        <input
+          class="outline-none border-2 rounded-md px-2 py-1 text-slate-500 w-full focus:border-blue-300"
+          placeholder="Password"
+          id="password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          required
+        />
+      </div>
+      <p id="mensaje" class="text-sm text-red-500 text-center"></p>
+      <button
+        class="w-full justify-center py-1 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 rounded-md text-white ring-2 disabled:opacity-50"
+        id="login"
+        type="submit"
+      >
+        Iniciar Sesion
+      </button>
+      <!--
+        espacio para cuando se implemente un registro
+        tener cuidado de no permitir que se registr quien sea con credenciales de acceso
 
-        document.getElementById("submit")?.addEventListener("click", () =>{
-            let email = document.getElementById("email") as HTMLInputElement
-            let password = document.getElementById("password") as HTMLInputElement
-            console.log("email: " + email.value + " - " + "password: " + password.value)
-            let json = async () => {
-                let peticion = {
-                        "email": email.value,
-                        "password": password.value
-                    }
-                let data = (await fetch("http://localhost:8788/api/auth/login", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    credentials: "include",
-                    body: JSON.stringify(peticion)
-                })).json()
-                
-                console.log(data)
-                return data
-                    
-            }
+      <p class="flex justify-center space-x-1">
+        <span class="text-slate-700"> No tienes cuenta? </span>
+        <a class="text-blue-500 hover:underline" href="#">
+          Iniciar sesion
+        </a>
+      </p>
+      -->
+    </form>
+  </div>
 
-            json()
+  <script>
+    const form = document.getElementById("login-form") as HTMLFormElement
+    const boton = document.getElementById("login") as HTMLButtonElement
+    const mensaje = document.getElementById("mensaje") as HTMLParagraphElement
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault()
+
+      const email = (document.getElementById("email") as HTMLInputElement).value
+      const password = (document.getElementById("password") as HTMLInputElement)
+        .value
+
+      mensaje.textContent = ""
+      boton.disabled = true
+
+      try {
+        const res = await fetch("http://localhost:8788/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ email, password }),
         })
-    </script>
+
+        const data = await res.json().catch(() => null)
+
+        if (!res.ok) {
+          mensaje.textContent = data?.error ?? "Credenciales incorrectas"
+          return
+        }
+
+        const params = new URLSearchParams(window.location.search)
+        const destino = params.get("redirect") ?? "/dashboard"
+        window.location.replace(
+          destino.startsWith("/") ? destino : "/dashboard",
+        )
+      } catch (err) {
+        console.error("Error en login:", err)
+        mensaje.textContent = "No se pudo conectar con el servidor"
+      } finally {
+        boton.disabled = false
+      }
+    })
+  </script>
 </Layout>
