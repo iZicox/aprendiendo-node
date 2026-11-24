@@ -15,9 +15,19 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   console.log(`[middleware] ${pathname} → ${user ? user.email : "sin sesión"}`)
 
-  if (pathname.startsWith("/dashboard") && !user) {
+  // user solo valido para desarrollo, en produccion usar !user
+  if (pathname.startsWith("/dashboard") && user) {
     return context.redirect("/login")
   }
 
+  // valido solo para desarrollo
+  context.locals.user = {
+    id: 1,
+    email: "prueba@gmail.com",
+    role: "user",
+    exp: 123456,
+  }
+  // valido solo para desarrollo
+  context.locals.isLoggedIn = true
   return next()
 })

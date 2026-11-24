@@ -1,0 +1,146 @@
+---
+import ItemMenuList from "./ItemMenuList.astro"
+import LogoSvg from "./LogoSvg.astro"
+---
+
+<button
+  id="nav-open"
+  type="button"
+  class="fixed top-4 left-4 z-30 grid size-10 place-items-center rounded-lg border border-stone-200 bg-white text-stone-700 shadow-sm transition-colors hover:bg-stone-50 focus-visible:ring-2 focus-visible:ring-amber-500/60 focus-visible:outline-none md:hidden"
+  aria-controls="sidebar"
+  aria-expanded="false"
+  aria-label="Abrir menú"
+>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    class="size-5"
+    aria-hidden="true"
+  >
+    <path
+      d="M4 6h16M4 12h16M4 18h16"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </svg>
+</button>
+
+<div
+  id="nav-backdrop"
+  class="fixed inset-0 z-40 hidden bg-black/50 backdrop-blur-sm md:hidden"
+  aria-hidden="true"
+>
+</div>
+
+<nav
+  id="sidebar"
+  data-collapsed="false"
+  data-open="false"
+  aria-label="Menú principal"
+  class="group fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col border-r border-white/10 bg-stone-950 shadow-none transition-[width,transform] duration-300 ease-out data-[open=true]:translate-x-0 md:translate-x-0 md:shadow-2xl md:shadow-black/30 md:data-[collapsed=true]:w-[76px]"
+>
+  <div
+    class="flex h-16 shrink-0 items-center justify-between gap-2 px-4 md:group-data-[collapsed=true]:justify-center md:group-data-[collapsed=true]:px-2"
+  >
+    <a
+      href="/"
+      aria-label="Ir al inicio"
+      class="block w-44 shrink-0 text-white transition-opacity hover:opacity-80 md:group-data-[collapsed=true]:hidden"
+    >
+      <LogoSvg />
+    </a>
+
+    <button
+      id="nav-toggle"
+      type="button"
+      class="grid size-9 shrink-0 place-items-center rounded-lg border border-white/5 bg-white/[0.03] text-stone-400 transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-amber-400/60 focus-visible:outline-none"
+      aria-controls="sidebar"
+      aria-expanded="true"
+      aria-label="Contraer menú"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        class="size-4 transition-transform duration-300 md:group-data-[collapsed=true]:rotate-180"
+        aria-hidden="true"
+      >
+        <path
+          d="m15 6-6 6 6 6"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </button>
+  </div>
+
+  <div
+    class="mx-4 h-px shrink-0 bg-white/10 md:group-data-[collapsed=true]:mx-3"
+    aria-hidden="true"
+  >
+  </div>
+
+  <ItemMenuList />
+</nav>
+
+<script>
+  const nav = document.getElementById("sidebar")
+  const toggle = document.getElementById("nav-toggle")
+  const openButton = document.getElementById("nav-open")
+  const backdrop = document.getElementById("nav-backdrop")
+  const main = document.getElementById("main")
+  const desktop = window.matchMedia("(min-width: 768px)")
+
+  const setCollapsed = (collapsed: boolean) => {
+    if (!nav) return
+
+    nav.dataset.collapsed = String(collapsed)
+    if (main) main.dataset.collapsed = String(collapsed)
+
+    toggle?.setAttribute("aria-expanded", String(!collapsed))
+    toggle?.setAttribute(
+      "aria-label",
+      collapsed ? "Expandir menú" : "Contraer menú",
+    )
+  }
+
+  const setMobileOpen = (open: boolean) => {
+    if (!nav) return
+
+    nav.dataset.open = String(open)
+    openButton?.setAttribute("aria-expanded", String(open))
+    backdrop?.classList.toggle("hidden", !open)
+    document.body.classList.toggle("overflow-hidden", open)
+  }
+
+  toggle?.addEventListener("click", () => {
+    if (!nav) return
+
+    if (desktop.matches) {
+      setCollapsed(nav.dataset.collapsed !== "true")
+    } else {
+      setMobileOpen(false)
+    }
+  })
+
+  openButton?.addEventListener("click", () => setMobileOpen(true))
+  backdrop?.addEventListener("click", () => setMobileOpen(false))
+
+  nav?.addEventListener("click", (event) => {
+    const target = event.target as HTMLElement
+    if (!desktop.matches && target.closest("a")) setMobileOpen(false)
+  })
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") setMobileOpen(false)
+  })
+
+  desktop.addEventListener("change", (event) => {
+    if (event.matches) setMobileOpen(false)
+  })
+</script>

@@ -1,102 +1,218 @@
 ---
-import Layout from "../../layouts/Layout.astro"
-import "../../styles/global.css"
+import AuthLayout from "../../layouts/AuthLayout.astro"
 
-const { isLoggedIn } = Astro.locals
+const inputClass =
+  "w-full rounded-xl border border-stone-300 bg-stone-50 px-3.5 py-2.5 text-sm text-stone-900 shadow-sm transition placeholder:text-stone-400 focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/15 focus:outline-none"
+const labelClass = "mb-1.5 block text-sm font-medium text-stone-700"
+const buttonClass =
+  "inline-flex w-full items-center justify-center rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-semibold text-stone-950 shadow-sm transition hover:bg-amber-400 focus-visible:ring-4 focus-visible:ring-amber-500/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+const linkClass =
+  "font-semibold text-amber-700 underline-offset-4 hover:text-amber-800 hover:underline"
 ---
 
-<Layout>
-  <div class="w-80 rounded-lg shadow h-auto p-6 bg-white relative overflow-hidden">
-    <div class="flex flex-col justify-center items-center space-y-2">
-      <h2 class="text-2xl font-medium text-slate-700">Login</h2>
-      <p class="text-slate-500">Escribe tu usuario y contraseña.</p>
+<AuthLayout
+  title="Iniciar sesión"
+  subtitle="Accede con tu cuenta para gestionar el inventario."
+>
+  <form id="login-form" method="post" class="space-y-4">
+    <div>
+      <label for="email" class={labelClass}>Correo electrónico</label>
+      <input
+        id="email"
+        name="email"
+        type="email"
+        autocomplete="username"
+        placeholder="tu@correo.com"
+        required
+        class={inputClass}
+      />
     </div>
-    <form id="login-form" method="post" class="w-full mt-4 space-y-3">
-      <div>
+
+    <div>
+      <label for="password" class={labelClass}>Contraseña</label>
+      <div class="relative">
         <input
-          class="outline-none border-2 rounded-md px-2 py-1 text-slate-500 w-full focus:border-blue-300"
-          placeholder="Email"
-          id="email"
-          name="email"
-          type="email"
-          autocomplete="username"
-          required
-        />
-      </div>
-      <div>
-        <input
-          class="outline-none border-2 rounded-md px-2 py-1 text-slate-500 w-full focus:border-blue-300"
-          placeholder="Password"
           id="password"
           name="password"
           type="password"
           autocomplete="current-password"
+          placeholder="••••••••"
           required
+          class={`${inputClass} pr-11`}
         />
+        <button
+          id="toggle-password"
+          type="button"
+          class="absolute inset-y-0 right-0 grid w-11 place-items-center rounded-r-xl text-stone-400 transition-colors hover:text-stone-700 focus-visible:ring-2 focus-visible:ring-amber-500/40 focus-visible:ring-inset focus-visible:outline-none"
+          aria-label="Mostrar contraseña"
+          aria-pressed="false"
+        >
+          <svg
+            data-eye-open
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            class="size-5"
+            aria-hidden="true"
+          >
+            <path
+              d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <circle
+              cx="12"
+              cy="12"
+              r="3"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+          </svg>
+          <svg
+            data-eye-closed
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            class="hidden size-5"
+            aria-hidden="true"
+          >
+            <path
+              d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49M14.084 14.158a3 3 0 0 1-4.242-4.242M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143M2 2l20 20"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
       </div>
-      <p id="mensaje" class="text-sm text-red-500 text-center"></p>
-      <button
-        class="w-full justify-center py-1 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 rounded-md text-white ring-2 disabled:opacity-50"
-        id="login"
-        type="submit"
-      >
-        Iniciar Sesion
-      </button>
-      <!--
-        espacio para cuando se implemente un registro
-        tener cuidado de no permitir que se registr quien sea con credenciales de acceso
+    </div>
 
-      <p class="flex justify-center space-x-1">
-        <span class="text-slate-700"> No tienes cuenta? </span>
-        <a class="text-blue-500 hover:underline" href="#">
-          Iniciar sesion
-        </a>
-      </p>
-      -->
-    </form>
-  </div>
+    <div
+      id="mensaje"
+      role="status"
+      aria-live="polite"
+      class="hidden rounded-xl border px-3.5 py-2.5 text-sm"
+    >
+    </div>
 
-  <script>
-    const form = document.getElementById("login-form") as HTMLFormElement
-    const boton = document.getElementById("login") as HTMLButtonElement
-    const mensaje = document.getElementById("mensaje") as HTMLParagraphElement
+    <button id="login" type="submit" class={buttonClass}>
+      Iniciar sesión
+    </button>
+  </form>
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault()
+  <p class="mt-6 text-center text-sm text-stone-500">
+    ¿No tienes cuenta?{" "}
+    <a href="/register" class={linkClass}>Crear una cuenta</a>
+  </p>
+</AuthLayout>
 
-      const email = (document.getElementById("email") as HTMLInputElement).value
-      const password = (document.getElementById("password") as HTMLInputElement)
-        .value
+<script>
+  const API_URL = "http://localhost:8788"
 
-      mensaje.textContent = ""
-      boton.disabled = true
+  const form = document.getElementById("login-form") as HTMLFormElement
+  const button = document.getElementById("login") as HTMLButtonElement
+  const message = document.getElementById("mensaje") as HTMLDivElement
+  const emailInput = document.getElementById("email") as HTMLInputElement
+  const passwordInput = document.getElementById("password") as HTMLInputElement
+  const togglePassword = document.getElementById(
+    "toggle-password",
+  ) as HTMLButtonElement
+  const buttonLabel = button.textContent ?? "Iniciar sesión"
 
-      try {
-        const res = await fetch("http://localhost:8788/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ email, password }),
-        })
+  const showMessage = (text: string, type: "error" | "success") => {
+    message.textContent = text
+    message.className = `rounded-xl border px-3.5 py-2.5 text-sm ${
+      type === "success"
+        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+        : "border-red-200 bg-red-50 text-red-700"
+    }`
+  }
 
-        const data = await res.json().catch(() => null)
+  togglePassword.addEventListener("click", () => {
+    const show = passwordInput.type === "password"
 
-        if (!res.ok) {
-          mensaje.textContent = data?.error ?? "Credenciales incorrectas"
-          return
-        }
+    passwordInput.type = show ? "text" : "password"
+    togglePassword.setAttribute("aria-pressed", String(show))
+    togglePassword.setAttribute(
+      "aria-label",
+      show ? "Ocultar contraseña" : "Mostrar contraseña",
+    )
+    togglePassword
+      .querySelector("[data-eye-open]")
+      ?.classList.toggle("hidden", show)
+    togglePassword
+      .querySelector("[data-eye-closed]")
+      ?.classList.toggle("hidden", !show)
+  })
 
-        const params = new URLSearchParams(window.location.search)
-        const destino = params.get("redirect") ?? "/dashboard"
-        window.location.replace(
-          destino.startsWith("/") ? destino : "/dashboard",
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault()
+    message.classList.add("hidden")
+
+    const email = emailInput.value.trim()
+    const password = passwordInput.value
+
+    button.disabled = true
+    button.textContent = "Ingresando..."
+
+    try {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await res.json().catch(() => null)
+
+      if (!res.ok) {
+        showMessage(
+          typeof data?.error === "string"
+            ? data.error
+            : "No pudimos iniciar sesión. Revisa tus datos.",
+          "error",
         )
-      } catch (err) {
-        console.error("Error en login:", err)
-        mensaje.textContent = "No se pudo conectar con el servidor"
-      } finally {
-        boton.disabled = false
+        return
       }
-    })
-  </script>
-</Layout>
+
+      showMessage("Sesión iniciada. Redirigiendo...", "success")
+
+      const redirect = new URLSearchParams(window.location.search).get(
+        "redirect",
+      )
+      const destination =
+        redirect &&
+        redirect.startsWith("/") &&
+        !redirect.startsWith("//") &&
+        !redirect.startsWith("/\\")
+          ? redirect
+          : "/dashboard"
+
+      window.location.replace(destination)
+    } catch (error) {
+      console.error("Error en login:", error)
+      showMessage("No se pudo conectar con el servidor.", "error")
+    } finally {
+      button.disabled = false
+      button.textContent = buttonLabel
+    }
+  })
+
+  const query = new URLSearchParams(window.location.search)
+
+  if (query.get("registered") === "1") {
+    showMessage(
+      "Cuenta creada correctamente. Ya puedes iniciar sesión.",
+      "success",
+    )
+  }
+
+  const email = query.get("email")
+  if (email) {
+    emailInput.value = email
+    passwordInput.focus()
+  }
+</script>

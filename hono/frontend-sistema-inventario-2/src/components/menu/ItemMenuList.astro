@@ -1,0 +1,34 @@
+---
+import DashboardIcon from "./icons/DashboardIcon.astro"
+import ItemMovementIcon from "./icons/ItemMovementIcon.astro"
+import ItemMenuCard from "./ItemMenuCard.astro"
+import MoreIcon from "./icons/MoreIcon.astro"
+import ProductIcon from "./icons/ProductIcon.astro"
+
+const data = {
+  items: [
+    { title: "Dashboard", link: "/dashboard", icon: DashboardIcon },
+    { title: "Productos", link: "/", icon: ProductIcon },
+    { title: "Movimientos", link: "/", icon: ItemMovementIcon },
+    { title: "Otra cosa", link: "/", icon: MoreIcon },
+  ],
+}
+---
+
+<div class="flex flex-1 flex-col overflow-x-hidden overflow-y-auto px-3 py-4">
+  <p
+    class="px-3 pb-2 text-[11px] font-semibold tracking-[0.16em] text-stone-500 uppercase md:group-data-[collapsed=true]:hidden"
+  >
+    General
+  </p>
+
+  <ul class="flex flex-col gap-1">
+    {data.items.map(({ title, link, icon: Icon }) => (
+      <li>
+        <ItemMenuCard link={link} title={title}>
+          <Icon />
+        </ItemMenuCard>
+      </li>
+    ))}
+  </ul>
+</div>

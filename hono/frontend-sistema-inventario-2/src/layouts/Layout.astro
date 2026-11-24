@@ -1,14 +1,44 @@
+---
+import Navbar from "../components/menu/Navbar.astro"
+
+import "../styles/global.css"
+
+interface Props {
+  title?: string
+}
+
+const { title = "Sistema de inventario" } = Astro.props
+const { pathname } = Astro.url
+const isAuthPage =
+  pathname.startsWith("/login") || pathname.startsWith("/register")
+---
+
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="generator" content={Astro.generator} />
-    <title>Astro Basics</title>
+    <title>{title}</title>
   </head>
-  <body class="flex items-center justify-center min-h-screen">
-    <slot />
+  <body
+    class="min-h-screen overflow-x-hidden bg-stone-100 font-sans text-xl text-stone-900 antialiased"
+  >
+    {!isAuthPage && <Navbar />}
+    <main
+      id="main"
+      data-collapsed="false"
+      class:list={[
+        "min-h-screen transition-[padding-left] duration-300 ease-out",
+        isAuthPage
+          ? "flex items-center justify-center p-4 sm:p-8"
+          : "grid place-content-center justify-items-center gap-2",
+        !isAuthPage && "md:pl-64 md:data-[collapsed=true]:pl-[76px]",
+      ]}
+    >
+      <slot />
+    </main>
   </body>
 </html>

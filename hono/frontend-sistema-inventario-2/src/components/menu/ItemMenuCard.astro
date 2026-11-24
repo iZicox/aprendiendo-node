@@ -1,0 +1,27 @@
+---
+interface Props {
+  title: string
+  link: string
+}
+
+const { title, link } = Astro.props
+const pathname = Astro.url.pathname
+// Los enlaces provisionales apuntan a "/": no los marcamos activos para que
+// no se iluminen varios elementos a la vez. Al usar rutas reales funciona solo.
+const isActive =
+  link !== "/" &&
+  (pathname === link || pathname.startsWith(`${link}/`))
+---
+
+<a
+  href={link}
+  title={title}
+  aria-current={isActive ? "page" : undefined}
+  data-active={isActive ? "true" : "false"}
+  class="flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-stone-400 transition-colors duration-200 outline-none hover:bg-white/5 hover:text-stone-100 focus-visible:ring-2 focus-visible:ring-amber-400/60 data-[active=true]:bg-amber-400/10 data-[active=true]:text-amber-200 data-[active=true]:ring-1 data-[active=true]:ring-amber-300/20 data-[active=true]:ring-inset md:group-data-[collapsed=true]:justify-center md:group-data-[collapsed=true]:px-0"
+>
+  <span class="grid size-5 shrink-0 place-items-center">
+    <slot />
+  </span>
+  <span class="truncate md:group-data-[collapsed=true]:hidden">{title}</span>
+</a>

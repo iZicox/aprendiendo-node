@@ -1,0 +1,97 @@
+---
+import Layout from "./Layout.astro"
+import LogoSvg from "../components/menu/LogoSvg.astro"
+
+interface Props {
+  title: string
+  subtitle: string
+}
+
+const { title, subtitle } = Astro.props
+---
+
+<Layout title={`${title} · Sistema de inventario`}>
+  <div class="relative w-full max-w-4xl">
+    <div
+      aria-hidden="true"
+      class="pointer-events-none absolute -top-24 -right-20 size-72 rounded-full bg-amber-200/50 blur-3xl"
+    >
+    </div>
+    <div
+      aria-hidden="true"
+      class="pointer-events-none absolute -bottom-28 -left-24 size-80 rounded-full bg-stone-300/50 blur-3xl"
+    >
+    </div>
+
+    <div
+      class="relative overflow-hidden rounded-3xl border border-stone-200/80 bg-white shadow-2xl shadow-stone-900/10 md:grid md:grid-cols-[0.9fr_1fr]"
+    >
+      <aside
+        class="relative hidden flex-col justify-between overflow-hidden bg-stone-950 p-8 md:flex lg:p-10"
+      >
+        <div
+          aria-hidden="true"
+          class="pointer-events-none absolute -top-24 -right-24 size-64 rounded-full bg-amber-400/15 blur-3xl"
+        >
+        </div>
+        <div
+          aria-hidden="true"
+          class="pointer-events-none absolute -bottom-32 -left-16 size-64 rounded-full bg-amber-500/10 blur-3xl"
+        >
+        </div>
+
+        <a
+          href="/"
+          aria-label="Ir al inicio"
+          class="relative block w-40 text-white transition-opacity hover:opacity-80"
+        >
+          <LogoSvg />
+        </a>
+
+        <div class="relative mt-12">
+          <p
+            class="text-[11px] font-semibold tracking-[0.18em] text-amber-300 uppercase"
+          >
+            Sistema de inventario
+          </p>
+          <p
+            class="mt-3 text-2xl font-semibold tracking-tight text-white lg:text-3xl"
+          >
+            Todo tu inventario,<br />en un solo lugar.
+          </p>
+          <p class="mt-4 max-w-xs text-sm leading-relaxed text-stone-400">
+            Gestiona productos, existencias y movimientos desde un panel claro
+            y rápido.
+          </p>
+        </div>
+
+        <p class="relative text-xs text-stone-500">
+          © {new Date().getFullYear()} · Control de inventario
+        </p>
+      </aside>
+
+      <section class="p-6 sm:p-8 lg:p-10">
+        <div class="mb-8 md:hidden">
+          <a
+            href="/"
+            aria-label="Ir al inicio"
+            class="block w-40 text-stone-950"
+          >
+            <LogoSvg />
+          </a>
+        </div>
+
+        <header class="mb-6">
+          <h1 class="text-2xl font-semibold tracking-tight text-stone-900">
+            {title}
+          </h1>
+          <p class="mt-1.5 text-sm leading-relaxed text-stone-500">
+            {subtitle}
+          </p>
+        </header>
+
+        <slot />
+      </section>
+    </div>
+  </div>
+</Layout>
